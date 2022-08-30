@@ -102,18 +102,43 @@ export function makeVector(list: Ty[]): TyVector {
   };
 }
 
+export type TyKey = TyString | TyKeyword;
+
 export interface TyHashMap {
   kind: Kind.HashMap;
-  stringMap: Map<string, Ty>;
-  keywordMap: Map<Ty, Ty>;
+  map: Map<TyKey, Ty>;
 }
 
 export function makeHashMap(list: Ty[]): TyHashMap {
-  return {
+  const res: TyHashMap = {
     kind: Kind.HashMap,
-    stringMap: new Map(),
-    keywordMap: new Map(),
+    map: new Map(),
   };
+
+  while (list.length > 0) {
+    const key = list.shift()!;
+    const val = list.shift();
+    if (!val) {
+      throw new Error("unexpected hashmap length.");
+    }
+    switch (key.kind) {
+      case Kind.String: {
+        res.map.set(key, val);
+        break;
+      }
+      case Kind.Keyword: {
+        res.map.set(key, val);
+        break;
+      }
+      default: {
+        throw new Error(
+          `unexpected key type: ${key.kind}, expected string or keyword.`,
+        );
+      }
+    }
+  }
+
+  return res;
 }
 
 export function tyToString(ty: Ty): string {
@@ -145,8 +170,13 @@ export function tyToString(ty: Ty): string {
       return `[${vec.join(" ")}]`;
     }
     case Kind.HashMap: {
-      const todo = "TODO";
-      return `{${todo}}`;
+      const mp: Ty[] = [];
+      ty.map.forEach((v, k) => {
+        mp.push(k);
+        mp.push(v);
+      });
+      const content = mp.map((x) => tyToString(x));
+      return `{${content.join(" ")}}`;
     }
     default: {
       const _exhaustiveCheck: never = ty;

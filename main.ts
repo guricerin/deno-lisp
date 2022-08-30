@@ -2,16 +2,19 @@ import { stdio } from "./deps.ts";
 import { Ty, tyToString } from "./lib/types.ts";
 import { parse } from "./lib/reader.ts";
 
-function read(s: string): Ty {
+function read(s: string): Ty | undefined {
   return parse(s);
 }
 
-function evalExpr(ast: Ty): Ty {
+function evalExpr(ast: Ty | undefined): Ty | undefined {
   return ast;
 }
 
-function print(ast: Ty) {
-  console.log(tyToString(ast));
+function print(ast: Ty | undefined) {
+  if (!ast) {
+    console.log("");
+  }
+  console.log(tyToString(ast!));
 }
 
 function rep(s: string) {

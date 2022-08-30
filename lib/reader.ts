@@ -32,9 +32,12 @@ export class Reader {
   }
 }
 
-export function parse(code: string): Ty {
+export function parse(code: string): Ty | undefined {
   const tokens = tokenize(code);
   const reader = new Reader(tokens);
+  if (!reader.peek()) {
+    return undefined;
+  }
   const ast = parseForm(reader);
   return ast;
 }
@@ -124,7 +127,7 @@ function parseCollection(
   return makeCollection(list);
 }
 
-function parseQuotes(reader: Reader, name: string): Ty {
+function parseQuotes(reader: Reader, name: string): TyList {
   reader.next();
   const sym: TySymbol = {
     kind: Kind.Symbol,

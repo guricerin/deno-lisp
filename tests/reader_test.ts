@@ -6,7 +6,11 @@ import { tyToString } from "../lib/types.ts";
 import { parse } from "../lib/reader.ts";
 
 function parseHelper(code: string): string {
-  return tyToString(parse(code));
+  const ast = parse(code);
+  if (!ast) {
+    return "";
+  }
+  return tyToString(ast);
 }
 
 /**
@@ -535,5 +539,89 @@ Deno.test("keywords:   [ +   1   [+   2 3   ]   ]  ", () => {
 Deno.test("keywords: ([])", () => {
   const actual = parseHelper("([])");
   const expect = "([])";
+  assertEquals(actual, expect);
+});
+
+/**
+ * read of hashmaps
+ */
+Deno.test("read of hashmaps: {}", () => {
+  const actual = parseHelper("{}");
+  const expect = "{}";
+  assertEquals(actual, expect);
+});
+
+Deno.test("read of hashmaps: { }", () => {
+  const actual = parseHelper("{ }");
+  const expect = "{}";
+  assertEquals(actual, expect);
+});
+
+Deno.test('read of hashmaps: {"abc" 1}', () => {
+  const actual = parseHelper('{"abc" 1}');
+  const expect = '{"abc" 1}';
+  assertEquals(actual, expect);
+});
+
+Deno.test('read of hashmaps: {"a" {"b" 2}}', () => {
+  const actual = parseHelper('{"a" {"b" 2}}');
+  const expect = '{"a" {"b" 2}}';
+  assertEquals(actual, expect);
+});
+
+Deno.test('read of hashmaps: {"a" {"b" {"c" 3}}}', () => {
+  const actual = parseHelper('{"a" {"b" {"c" 3}}}');
+  const expect = '{"a" {"b" {"c" 3}}}';
+  assertEquals(actual, expect);
+});
+
+Deno.test('read of hashmaps: {  "a"  {"b"   {  "cde"     3   }  }}', () => {
+  const actual = parseHelper('{  "a"  {"b"   {  "cde"     3   }  }}');
+  const expect = '{"a" {"b" {"cde" 3}}}';
+  assertEquals(actual, expect);
+});
+
+Deno.test('read of hashmaps: {"a1" 1 "a2" 2 "a3" 3}', () => {
+  const actual = parseHelper('{"a1" 1 "a2" 2 "a3" 3}');
+  const expect = '{"a1" 1 "a2" 2 "a3" 3}';
+  assertEquals(actual, expect);
+});
+
+Deno.test("read of hashmaps: {  :a  {:b   {  :cde     3   }  }}", () => {
+  const actual = parseHelper("{  :a  {:b   {  :cde     3   }  }}");
+  const expect = "{:a {:b {:cde 3}}}";
+  assertEquals(actual, expect);
+});
+
+Deno.test('read of hashmaps: {"1" 1}', () => {
+  const actual = parseHelper('{"1" 1}');
+  const expect = '{"1" 1}';
+  assertEquals(actual, expect);
+});
+
+Deno.test("error read of hashmaps: {{}}", () => {
+  assertThrows(() => {
+    parseHelper("{{}}");
+  });
+});
+
+/**
+ * read of comments
+ */
+Deno.test("read of comments: ;; whole line comment", () => {
+  const actual = parseHelper(";; whole line comment");
+  const expect = "";
+  assertEquals(actual, expect);
+});
+
+Deno.test("read of comments: 1 ; comment after expression", () => {
+  const actual = parseHelper("1 ; comment after expression");
+  const expect = "1";
+  assertEquals(actual, expect);
+});
+
+Deno.test("read of comments: 1; comment after expression", () => {
+  const actual = parseHelper("1; comment after expression");
+  const expect = "1";
   assertEquals(actual, expect);
 });
