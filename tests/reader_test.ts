@@ -492,3 +492,48 @@ Deno.test("keywords: (:kw1 :kw2 :kw3)", () => {
   const expect = "(:kw1 :kw2 :kw3)";
   assertEquals(actual, expect);
 });
+
+/**
+ * read of vectors
+ */
+Deno.test("keywords: [+ 1 2]", () => {
+  const actual = parseHelper("[+ 1 2]");
+  const expect = "[+ 1 2]";
+  assertEquals(actual, expect);
+});
+
+Deno.test("keywords: []", () => {
+  const actual = parseHelper("[]");
+  const expect = "[]";
+  assertEquals(actual, expect);
+});
+
+Deno.test("keywords: [ ]", () => {
+  const actual = parseHelper("[ ]");
+  const expect = "[]";
+  assertEquals(actual, expect);
+});
+
+Deno.test("keywords: [[3 4]]", () => {
+  const actual = parseHelper("[[3 4]]");
+  const expect = "[[3 4]]";
+  assertEquals(actual, expect);
+});
+
+Deno.test("keywords: [+ 1 [+ 2 3]]", () => {
+  const actual = parseHelper("[+ 1 [+ 2 3]]");
+  const expect = "[+ 1 [+ 2 3]]";
+  assertEquals(actual, expect);
+});
+
+Deno.test("keywords:   [ +   1   [+   2 3   ]   ]  ", () => {
+  const actual = parseHelper("  [ +   1   [+   2 3   ]   ]  ");
+  const expect = "[+ 1 [+ 2 3]]";
+  assertEquals(actual, expect);
+});
+
+Deno.test("keywords: ([])", () => {
+  const actual = parseHelper("([])");
+  const expect = "([])";
+  assertEquals(actual, expect);
+});
