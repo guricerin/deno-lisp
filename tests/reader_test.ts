@@ -625,3 +625,12 @@ Deno.test("read of comments: 1; comment after expression", () => {
   const expect = "1";
   assertEquals(actual, expect);
 });
+
+/**
+ * read of @/deref
+ */
+Deno.test("read of @/deref", () => {
+  const actual = parseHelper("@a");
+  const expect = "(deref a)";
+  assertEquals(actual, expect);
+});

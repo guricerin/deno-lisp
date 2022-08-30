@@ -13,8 +13,9 @@ function evalExpr(ast: Ty | undefined): Ty | undefined {
 function print(ast: Ty | undefined) {
   if (!ast) {
     console.log("");
+  } else {
+    console.log(tyToString(ast));
   }
-  console.log(tyToString(ast!));
 }
 
 function rep(s: string) {
