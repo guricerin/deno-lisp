@@ -141,17 +141,30 @@ export function makeHashMap(list: Ty[]): TyHashMap {
   return res;
 }
 
-export function tyToString(ty: Ty): string {
+/**
+ * @param ty
+ * @param readably : When it is true, doublequotes, newlines, and backslashes are translated into their printed representations (the reverse of the reader).
+ * @returns
+ */
+export function tyToString(ty: Ty, readably: boolean): string {
   switch (ty.kind) {
     case Kind.List: {
-      const list = ty.list.map((x) => tyToString(x));
+      const list = ty.list.map((x) => tyToString(x, readably));
       return `(${list.join(" ")})`;
     }
     case Kind.Number: {
       return `${ty.val}`;
     }
     case Kind.String: {
-      return `"${ty.val}"`;
+      if (readably) {
+        const s = ty.val
+          .replace(/\\/g, "\\\\")
+          .replace(/"/g, '\\"')
+          .replace(/\n/g, "\\n");
+        return `"${s}"`;
+      } else {
+        return `"${ty.val}"`;
+      }
     }
     case Kind.Nil: {
       return `${ty.kind}`;
@@ -166,7 +179,7 @@ export function tyToString(ty: Ty): string {
       return `:${ty.name}`;
     }
     case Kind.Vector: {
-      const vec = ty.list.map((x) => tyToString(x));
+      const vec = ty.list.map((x) => tyToString(x, readably));
       return `[${vec.join(" ")}]`;
     }
     case Kind.HashMap: {
@@ -175,7 +188,7 @@ export function tyToString(ty: Ty): string {
         mp.push(k);
         mp.push(v);
       });
-      const content = mp.map((x) => tyToString(x));
+      const content = mp.map((x) => tyToString(x, readably));
       return `{${content.join(" ")}}`;
     }
     default: {

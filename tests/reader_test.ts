@@ -10,7 +10,7 @@ function parseHelper(code: string): string {
   if (!ast) {
     return "";
   }
-  return tyToString(ast);
+  return tyToString(ast, true);
 }
 
 /**
@@ -213,7 +213,7 @@ Deno.test('read of strings: "abc (with parens)"', () => {
 
 Deno.test('read of strings: "abc\\"def"', () => {
   const actual = parseHelper('"abc\\"def"');
-  const expect = '"abc"def"';
+  const expect = '"abc\\"def"';
   assertEquals(actual, expect);
 });
 
@@ -226,14 +226,14 @@ Deno.test('read of strings: ""', () => {
 Deno.test('read of strings: "\\"', () => {
   const s = String.raw`"\\"`;
   const actual = parseHelper(s);
-  const expect = String.raw`"\"`;
+  const expect = String.raw`"\\"`;
   assertEquals(actual, expect);
 });
 
 Deno.test('read of strings: "\\\\\\\\\\\\\\\\\\"', () => {
   const s = String.raw`"\\\\\\\\\\\\\\\\\\"`;
   const actual = parseHelper(s);
-  const expect = String.raw`"\\\\\\\\\"`;
+  const expect = String.raw`"\\\\\\\\\\\\\\\\\\"`;
   assertEquals(actual, expect);
 });
 
@@ -632,5 +632,128 @@ Deno.test("read of comments: 1; comment after expression", () => {
 Deno.test("read of @/deref", () => {
   const actual = parseHelper("@a");
   const expect = "(deref a)";
+  assertEquals(actual, expect);
+});
+
+/**
+ * read of ^/metadata
+ */
+Deno.test("read of ^/metadata", () => {
+  const actual = parseHelper('^{"a" 1} [1 2 3]');
+  const expect = '(with-meta [1 2 3] {"a" 1})';
+  assertEquals(actual, expect);
+});
+
+/**
+ * Non alphanumerice characters in strings
+ * \t is not specified enough to be tested
+ */
+Deno.test("Non alphanumerice characters in strings: \\n", () => {
+  const s = String.raw`"\n"`;
+  const actual = parseHelper(s);
+  const expect = s;
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in strings: #", () => {
+  const actual = parseHelper('"#"');
+  const expect = '"#"';
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in strings: $", () => {
+  const actual = parseHelper('"$"');
+  const expect = '"$"';
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in strings: %", () => {
+  const actual = parseHelper('"%"');
+  const expect = '"%"';
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in strings: .", () => {
+  const actual = parseHelper('"."');
+  const expect = '"."';
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in strings: \\", () => {
+  const s = String.raw`"\\"`;
+  const actual = parseHelper(s);
+  const expect = String.raw`"\\"`;
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in strings: |", () => {
+  const actual = parseHelper('"|"');
+  const expect = '"|"';
+  assertEquals(actual, expect);
+});
+
+/**
+ * Non alphanumeric characters in comments
+ */
+Deno.test("Non alphanumerice characters in comments: 1;!", () => {
+  const actual = parseHelper("1;!");
+  const expect = "1";
+  assertEquals(actual, expect);
+});
+
+Deno.test('Non alphanumerice characters in comments: 1;"', () => {
+  const actual = parseHelper('1;"');
+  const expect = "1";
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in comments: 1;#", () => {
+  const actual = parseHelper("1;#");
+  const expect = "1";
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in comments: 1;$", () => {
+  const actual = parseHelper("1;$");
+  const expect = "1";
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in comments: 1;%", () => {
+  const actual = parseHelper("1;%");
+  const expect = "1";
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in comments: 1;'", () => {
+  const actual = parseHelper("1;'");
+  const expect = "1";
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in comments: 1;\\", () => {
+  const actual = parseHelper("1;\\");
+  const expect = "1";
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in comments: 1;\\\\", () => {
+  const actual = parseHelper("1;\\\\");
+  const expect = "1";
+  assertEquals(actual, expect);
+});
+
+Deno.test("Non alphanumerice characters in comments: 1;`", () => {
+  const actual = parseHelper("1;`");
+  const expect = "1";
+  assertEquals(actual, expect);
+});
+
+/**
+ * Hopefully less problematic characters
+ */
+Deno.test("Hopefully less problematic characters: 1; &()*+,-./:;<=>?@[]^_{|}~", () => {
+  const actual = parseHelper("1; &()*+,-./:;<=>?@[]^_{|}~");
+  const expect = "1";
   assertEquals(actual, expect);
 });

@@ -14,7 +14,7 @@ function print(ast: Ty | undefined) {
   if (!ast) {
     console.log("");
   } else {
-    console.log(tyToString(ast));
+    console.log(tyToString(ast, true));
   }
 }
 
