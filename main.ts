@@ -1,24 +1,30 @@
 import { stdio } from "./deps.ts";
+import { Ty, tyToString } from "./lib/types.ts";
+import { parse } from "./lib/reader.ts";
 
-function read(s: string): string {
-  return s;
+function read(s: string): Ty {
+  return parse(s);
 }
 
-function evalExpr(s: string): string {
-  return s;
+function evalExpr(ast: Ty): Ty {
+  return ast;
 }
 
-function print(s: string): string {
-  console.log(s);
-  return s;
+function print(ast: Ty) {
+  console.log(tyToString(ast));
 }
 
-function rep(s: string): string {
-  return print(evalExpr(read(s)));
+function rep(s: string) {
+  print(evalExpr(read(s)));
 }
 
 (async () => {
   for await (const line of stdio.readLines(Deno.stdin)) {
-    rep(line);
+    try {
+      rep(line);
+    } catch (e) {
+      const err = e as Error;
+      console.error(err.message);
+    }
   }
 })();
