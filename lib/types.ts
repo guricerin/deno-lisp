@@ -7,7 +7,9 @@ export type Ty =
   | TySymbol
   | TyKeyword
   | TyVector
-  | TyHashMap;
+  | TyHashMap
+  | TyBuiltinFn
+  | TyFunc;
 
 export const enum Kind {
   List = "list",
@@ -19,7 +21,8 @@ export const enum Kind {
   Keyword = "keyword",
   Vector = "vector",
   HashMap = "hashmap",
-  Function = "function",
+  BuiltinFn = "builtin-fn",
+  Func = "function",
   Atom = "atom",
 }
 
@@ -38,6 +41,13 @@ export function makeList(list: Ty[]): TyList {
 export interface TyNumber {
   kind: Kind.Number;
   val: number;
+}
+
+export function makeNumber(v: number): TyNumber {
+  return {
+    kind: Kind.Number,
+    val: v,
+  };
 }
 
 export interface TyString {
@@ -59,22 +69,30 @@ export interface TySymbol {
   name: string;
 }
 
+export const kNil: TyNil = {
+  kind: Kind.Nil,
+};
+
+export const kTrue: TyBool = {
+  kind: Kind.Bool,
+  val: true,
+};
+
+export const kFalse: TyBool = {
+  kind: Kind.Bool,
+  val: false,
+};
+
 export function makeSymbol(name: string): Ty {
   switch (name) {
     case "nil": {
-      return { kind: Kind.Nil };
+      return kNil;
     }
     case "true": {
-      return {
-        kind: Kind.Bool,
-        val: true,
-      };
+      return kTrue;
     }
     case "false": {
-      return {
-        kind: Kind.Bool,
-        val: false,
-      };
+      return kFalse;
     }
     default: {
       return {
@@ -141,6 +159,70 @@ export function makeHashMap(list: Ty[]): TyHashMap {
   return res;
 }
 
+export type Env = Map<string, Ty>;
+
+export function makeEnv(): Env {
+  return new Map<string, Ty>();
+}
+
+/**
+ * 先頭への挿入: O(n), 末尾への挿入: O(1)
+ * 後ろほどinner env.
+ * 環境を参照する時は、後ろから見ていく。
+ */
+export type EnvChain = Env[];
+
+export function resolveSymbol(
+  sym: TySymbol,
+  envChain: EnvChain,
+): Ty | undefined {
+  for (let i = envChain.length - 1; i >= 0; i--) {
+    const v = envChain[i].get(sym.name);
+    if (v) {
+      return v;
+    }
+  }
+  return;
+}
+
+// https://typescriptbook.jp/reference/functions/rest-parameters
+type Fn = (...args: Ty[]) => Ty;
+
+export interface TyBuiltinFn {
+  kind: Kind.BuiltinFn;
+  fn: Fn;
+}
+
+export interface TyFunc {
+  kind: Kind.Func;
+  /**
+   * 仮引数: inner envで実引数の値にbindされる。
+   */
+  params: TySymbol[];
+  body: Ty[];
+  envChain: EnvChain;
+}
+
+export function makeFunc(
+  params: TySymbol[],
+  body: Ty[],
+  envChain: EnvChain,
+): TyFunc {
+  return {
+    kind: Kind.Func,
+    params: params,
+    body: body,
+    envChain: envChain,
+  };
+}
+
+export function makeBuiltinFunc(fn: Fn): TyBuiltinFn {
+  return {
+    kind: Kind.BuiltinFn,
+    fn: fn,
+  };
+}
+
 /**
  * @param ty
  * @param readably : When it is true, doublequotes, newlines, and backslashes are translated into their printed representations (the reverse of the reader).
@@ -190,6 +272,12 @@ export function tyToString(ty: Ty, readably: boolean): string {
       });
       const content = mp.map((x) => tyToString(x, readably));
       return `{${content.join(" ")}}`;
+    }
+    case Kind.BuiltinFn: {
+      return "todo";
+    }
+    case Kind.Func: {
+      return "todo";
     }
     default: {
       const _exhaustiveCheck: never = ty;
