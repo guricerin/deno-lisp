@@ -9,7 +9,7 @@ import {
   TyList,
 } from "./types.ts";
 
-export function evalExpr(ast: Ty, envChain: EnvChain): Ty {
+export function evalAst(ast: Ty, envChain: EnvChain): Ty {
   switch (ast.kind) {
     case Kind.List: {
       if (ast.list.length === 0) {
@@ -19,13 +19,13 @@ export function evalExpr(ast: Ty, envChain: EnvChain): Ty {
       }
     }
     default: {
-      return evalAst(ast, envChain);
+      return evalExpr(ast, envChain);
     }
   }
 }
 
 function apply(ls: TyList, envChain: EnvChain): Ty {
-  const result = evalAst(ls, envChain);
+  const result = evalExpr(ls, envChain);
   switch (result.kind) {
     case Kind.List:
     case Kind.Vector: {
@@ -53,31 +53,34 @@ function apply(ls: TyList, envChain: EnvChain): Ty {
   }
 }
 
-function evalAst(ast: Ty, envChain: EnvChain): Ty {
-  switch (ast.kind) {
+function evalExpr(expr: Ty, envChain: EnvChain): Ty {
+  switch (expr.kind) {
     case Kind.Symbol: {
-      const res = resolveSymbol(ast, envChain);
+      const res = resolveSymbol(expr, envChain);
       if (!res) {
-        throw new Error(`undefined symbol: ${ast.name}`);
+        throw new Error(`undefined symbol: ${expr.name}`);
       } else {
         return res;
       }
     }
     case Kind.List: {
-      const ls = ast.list.map((ty) => evalExpr(ty, envChain));
+      const ls = expr.list.map((ty) => evalAst(ty, envChain));
       return makeList(ls);
     }
     case Kind.Vector: {
-      const ls = ast.list.map((ty) => evalExpr(ty, envChain));
+      const ls = expr.list.map((ty) => evalAst(ty, envChain));
       return makeVector(ls);
     }
     case Kind.HashMap: {
-      // TODO
       const ls: Ty[] = [];
+      for (const [k, v] of expr.map.entries()) {
+        ls.push(k);
+        ls.push(evalAst(v, envChain));
+      }
       return makeHashMap(ls);
     }
     default: {
-      return ast;
+      return expr;
     }
   }
 }

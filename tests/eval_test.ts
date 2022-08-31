@@ -3,7 +3,7 @@ import {
   assertThrows,
 } from "https://deno.land/std@0.153.0/testing/asserts.ts";
 import { makeBuiltinEnv } from "../lib/env.ts";
-import { evalExpr } from "../lib/eval.ts";
+import { evalAst } from "../lib/eval.ts";
 import { parse } from "../lib/reader.ts";
 import { tyToString } from "../lib/types.ts";
 
@@ -14,7 +14,7 @@ function evalHelper(code: string): string {
   if (!ast) {
     return "";
   }
-  const res = evalExpr(ast, envChain);
+  const res = evalAst(ast, envChain);
   return tyToString(res, true);
 }
 
@@ -60,5 +60,51 @@ Deno.test("evaluation of arithmetic operations: (* -3 6)", () => {
 Deno.test("evaluation of arithmetic operations: (/ (- (+ 515 (* -87 311)) 296) 27)", () => {
   const actual = evalHelper("(/ (- (+ 515 (* -87 311)) 296) 27)");
   const expect = "-994";
+  assertEquals(actual, expect);
+});
+
+Deno.test("should throw an error with no return value: (abc 1 2 3)", () => {
+  assertThrows(() => {
+    // undefined symbol: abc
+    evalHelper("(abc 1 2 3)");
+  });
+});
+
+Deno.test("empty list: ()", () => {
+  const actual = evalHelper("()");
+  const expect = "()";
+  assertEquals(actual, expect);
+});
+
+/**
+ * evaluation within collection literals
+ */
+Deno.test("evaluation within collection literals: [1 2 (+ 1 2)]", () => {
+  const actual = evalHelper("[1 2 (+ 1 2)]");
+  const expect = "[1 2 3]";
+  assertEquals(actual, expect);
+});
+
+Deno.test(`evaluation within collection literals: {"a" (+ 7 8)}`, () => {
+  const actual = evalHelper(`{"a" (+ 7 8)}`);
+  const expect = `{"a" 15}`;
+  assertEquals(actual, expect);
+});
+
+Deno.test(`evaluation within collection literals: {:a (+ 7 8)}`, () => {
+  const actual = evalHelper(`{:a (+ 7 8)}`);
+  const expect = `{:a 15}`;
+  assertEquals(actual, expect);
+});
+
+Deno.test("evaluation hasn't broken empty collections: []", () => {
+  const actual = evalHelper("[]");
+  const expect = "[]";
+  assertEquals(actual, expect);
+});
+
+Deno.test("evaluation hasn't broken empty collections: {}", () => {
+  const actual = evalHelper("{}");
+  const expect = "{}";
   assertEquals(actual, expect);
 });

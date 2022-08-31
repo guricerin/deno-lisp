@@ -2,7 +2,7 @@ import { stdio } from "./deps.ts";
 import { EnvChain, Ty, tyToString } from "./lib/types.ts";
 import { makeBuiltinEnv } from "./lib/env.ts";
 import { parse } from "./lib/reader.ts";
-import { evalExpr } from "./lib/eval.ts";
+import { evalAst } from "./lib/eval.ts";
 
 function read(s: string): Ty | undefined {
   return parse(s);
@@ -10,7 +10,7 @@ function read(s: string): Ty | undefined {
 
 function evalLisp(ast: Ty | undefined, envChain: EnvChain): Ty | undefined {
   if (ast) {
-    return evalExpr(ast, envChain);
+    return evalAst(ast, envChain);
   } else {
     return ast;
   }
