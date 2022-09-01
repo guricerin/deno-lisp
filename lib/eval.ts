@@ -5,6 +5,7 @@ import {
   makeList,
   makeVector,
   resolveSymbol,
+  storeKeyVal,
   Ty,
   TyList,
 } from "./types.ts";
@@ -15,13 +16,38 @@ export function evalAst(ast: Ty, envChain: EnvChain): Ty {
       if (ast.list.length === 0) {
         return ast;
       } else {
-        return apply(ast, envChain);
+        const sp = specialForm(ast, envChain);
+        return sp ?? apply(ast, envChain);
       }
     }
     default: {
       return evalExpr(ast, envChain);
     }
   }
+}
+
+function specialForm(ast: TyList, envChain: EnvChain): Ty | undefined {
+  const first = ast.list[0];
+  switch (first.kind) {
+    case Kind.Symbol: {
+      switch (first.name) {
+        case "def!": {
+          const [, key, val] = ast.list;
+          if (key.kind !== Kind.Symbol) {
+            throw new Error(
+              `unexpected token type: ${key.kind}, 'def!' expected symbol.`,
+            );
+          }
+          return storeKeyVal(key, evalAst(val, envChain), envChain);
+        }
+        case "let*": {
+          // TODO
+          return;
+        }
+      }
+    }
+  }
+  return;
 }
 
 function apply(ls: TyList, envChain: EnvChain): Ty {

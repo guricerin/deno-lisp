@@ -176,13 +176,18 @@ export function resolveSymbol(
   sym: TySymbol,
   envChain: EnvChain,
 ): Ty | undefined {
-  for (let i = envChain.length - 1; i >= 0; i--) {
+  for (let i = 0; i < envChain.length; i++) {
     const v = envChain[i].get(sym.name);
     if (v) {
       return v;
     }
   }
   return;
+}
+
+export function storeKeyVal(sym: TySymbol, val: Ty, envChain: EnvChain): Ty {
+  envChain[0].set(sym.name, val);
+  return val;
 }
 
 // https://typescriptbook.jp/reference/functions/rest-parameters
