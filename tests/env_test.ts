@@ -20,9 +20,6 @@ function evalHelper(code: string, envChain: EnvChain): string {
   return tyToString(res, true);
 }
 
-/**
- * evaluation of arithmetic operations
- */
 Deno.test("evaluation of arithmetic operations: (+ 1 2)", () => {
   const env = makeEnvChain();
   const actual = evalHelper("(+ 1 2)", env);
@@ -35,16 +32,13 @@ Deno.test("evaluation of arithmetic operations: (+ 5 (* 2 3))", () => {
   assertEquals(actual, "11");
 });
 
-/**
- * testing def!
- */
-Deno.test("testing def!: (def! x 3)", () => {
+Deno.test("def!: (def! x 3)", () => {
   const env = makeEnvChain();
   assertEquals(evalHelper("(def! x 3)", env), "3");
   assertEquals(evalHelper("x", env), "3");
 });
 
-Deno.test("testing def!: (def! y (+ 1 7))", () => {
+Deno.test("def!: (def! y (+ 1 7))", () => {
   const env = makeEnvChain();
   assertEquals(evalHelper("(def! y (+ 1 7))", env), "8");
   assertEquals(evalHelper("y", env), "8");
@@ -58,9 +52,6 @@ Deno.test("Verifying symbols are case-sensitive: (def! mynum 111)", () => {
   assertEquals(evalHelper("MYNUM", env), "222");
 });
 
-/**
- * Check env lookup non-fatal error
- */
 Deno.test("Check env lookup non-fatal error", () => {
   const env = makeEnvChain();
   assertThrows(() => {
@@ -71,4 +62,43 @@ Deno.test("Check env lookup non-fatal error", () => {
     evalHelper("(def! w (abc))", env);
   });
   assertEquals(evalHelper("w", env), "123");
+});
+
+Deno.test("let*", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(def! x 4)", env), "4");
+  assertEquals(evalHelper("(let* (z 9) z)", env), "9");
+  assertEquals(evalHelper("(let* (x 9) x)", env), "9");
+  assertEquals(evalHelper("x", env), "4");
+  assertEquals(evalHelper("(let* (z (+ 2 3)) (+ 1 z))", env), "6");
+  assertEquals(evalHelper("(let* (p (+ 2 3) q (+ 2 p)) (+ p q))", env), "12");
+  assertEquals(evalHelper("(def! y (let* (z 7) z))", env), "7");
+  assertEquals(evalHelper("y", env), "7");
+});
+
+Deno.test("outer environment", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(def! a 4)", env), "4");
+  assertEquals(evalHelper("(let* (q 9) q)", env), "9");
+  assertEquals(evalHelper("(let* (q 9) a)", env), "4");
+  assertEquals(evalHelper("(let* (z 2) (let* (q 9) a))", env), "4");
+});
+
+Deno.test("let* with vector bindings", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(let* [z 9] z)", env), "9");
+  assertEquals(evalHelper("(let* [p (+ 2 3) q (+ 2 p)] (+ p q))", env), "12");
+});
+
+Deno.test("vector evaluation", () => {
+  const env = makeEnvChain();
+  assertEquals(
+    evalHelper("(let* (a 5 b 6) [3 4 a [b 7] 8])", env),
+    "[3 4 5 [6 7] 8]",
+  );
+});
+
+Deno.test("last assignment takes priority", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(let* (x 2 x 3) x)", env), "3");
 });

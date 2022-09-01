@@ -166,9 +166,8 @@ export function makeEnv(): Env {
 }
 
 /**
- * 先頭への挿入: O(n), 末尾への挿入: O(1)
- * 後ろほどinner env.
- * 環境を参照する時は、後ろから見ていく。
+ * 先頭ほどinner env.
+ * 環境を参照する時は、先頭から見ていく。
  */
 export type EnvChain = Env[];
 

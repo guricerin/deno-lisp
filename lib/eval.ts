@@ -1,6 +1,7 @@
 import {
   EnvChain,
   Kind,
+  makeEnv,
   makeHashMap,
   makeList,
   makeVector,
@@ -28,26 +29,47 @@ export function evalAst(ast: Ty, envChain: EnvChain): Ty {
 
 function specialForm(ast: TyList, envChain: EnvChain): Ty | undefined {
   const first = ast.list[0];
-  switch (first.kind) {
-    case Kind.Symbol: {
-      switch (first.name) {
-        case "def!": {
-          const [, key, val] = ast.list;
-          if (key.kind !== Kind.Symbol) {
-            throw new Error(
-              `unexpected token type: ${key.kind}, 'def!' expected symbol.`,
-            );
+  if (first.kind !== Kind.Symbol) {
+    return;
+  }
+
+  switch (first.name) {
+    case "def!": { // (def! x y)
+      const [, key, val] = ast.list;
+      if (key.kind !== Kind.Symbol) {
+        throw new Error(
+          `unexpected token type: ${key.kind}, 'def!' expected symbol.`,
+        );
+      }
+      return storeKeyVal(key, evalAst(val, envChain), envChain);
+    }
+    case "let*": { // (let* (key val ...) ret)
+      const letEnvChain = [makeEnv(), ...envChain]; // 既存の（外側の）環境は破壊的変更をしないようにする。
+      const pairs = ast.list[1];
+      switch (pairs.kind) {
+        case Kind.List:
+        case Kind.Vector: {
+          const list = pairs.list;
+          for (let i = 0; i < list.length; i += 2) {
+            const key = list[i];
+            const val = list[i + 1];
+            if (key.kind !== Kind.Symbol) {
+              throw new Error(
+                `unexpected token type: ${key.kind}, expected symbol.`,
+              );
+            }
+            storeKeyVal(key, evalAst(val, letEnvChain), letEnvChain);
           }
-          return storeKeyVal(key, evalAst(val, envChain), envChain);
+          return evalAst(ast.list[2], letEnvChain);
         }
-        case "let*": {
-          // TODO
-          return;
+        default: {
+          throw new Error(
+            `unexpected token type: ${pairs.kind}, 'let*' expected list or vector.`,
+          );
         }
       }
     }
   }
-  return;
 }
 
 function apply(ls: TyList, envChain: EnvChain): Ty {
