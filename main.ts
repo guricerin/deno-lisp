@@ -1,6 +1,6 @@
 import { stdio } from "./deps.ts";
 import { EnvChain, Ty, tyToString } from "./lib/types.ts";
-import { makeBuiltinEnv } from "./lib/env.ts";
+import { makeBuiltinEnv } from "./lib/core.ts";
 import { parse } from "./lib/reader.ts";
 import { evalAst } from "./lib/eval.ts";
 
