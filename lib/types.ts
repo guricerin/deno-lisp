@@ -103,6 +103,22 @@ export function makeSymbol(name: string): Ty {
   }
 }
 
+export function tyToBool(ty: Ty): boolean {
+  switch (ty.kind) {
+    case Kind.Bool: {
+      return ty.val;
+    }
+    case Kind.Nil: {
+      return false;
+    }
+    default: {
+      throw new Error(
+        `unexpected token type: ${ty.kind}, 'cond' expected bool or nil.`,
+      );
+    }
+  }
+}
+
 export interface TyKeyword {
   kind: Kind.Keyword;
   name: string;
@@ -197,19 +213,26 @@ export interface TyBuiltinFn {
   fn: Fn;
 }
 
+export function makeBuiltinFunc(fn: Fn): TyBuiltinFn {
+  return {
+    kind: Kind.BuiltinFn,
+    fn: fn,
+  };
+}
+
 export interface TyFunc {
   kind: Kind.Func;
   /**
    * 仮引数: inner envで実引数の値にbindされる。
    */
   params: TySymbol[];
-  body: Ty[];
+  body: Ty;
   envChain: EnvChain;
 }
 
 export function makeFunc(
   params: TySymbol[],
-  body: Ty[],
+  body: Ty,
   envChain: EnvChain,
 ): TyFunc {
   return {
@@ -220,11 +243,20 @@ export function makeFunc(
   };
 }
 
-export function makeBuiltinFunc(fn: Fn): TyBuiltinFn {
-  return {
-    kind: Kind.BuiltinFn,
-    fn: fn,
-  };
+export function bindArgs(fn: TyFunc, args: Ty[]) {
+  if (fn.params.length !== args.length) {
+    throw new Error(
+      `function params length (${fn.params.length}) is not equal args length (${args.length}).`,
+    );
+  }
+  const innerEnv = makeEnv();
+  for (let i = 0; i < args.length; i++) {
+    console.log(
+      `${i} param: ${fn.params[i].name}, arg: ${JSON.stringify(args[i])}`,
+    );
+    innerEnv.set(fn.params[i].name, args[i]);
+  }
+  fn.envChain = [innerEnv, ...fn.envChain];
 }
 
 /**
@@ -278,10 +310,10 @@ export function tyToString(ty: Ty, readably: boolean): string {
       return `{${content.join(" ")}}`;
     }
     case Kind.BuiltinFn: {
-      return "todo";
+      return "#<built-in-function>";
     }
     case Kind.Func: {
-      return "todo";
+      return "#<function>";
     }
     default: {
       const _exhaustiveCheck: never = ty;

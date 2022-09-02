@@ -1,7 +1,9 @@
 import {
+  bindArgs,
   EnvChain,
   Kind,
   makeEnv,
+  makeFunc,
   makeHashMap,
   makeList,
   makeVector,
@@ -9,6 +11,7 @@ import {
   storeKeyVal,
   Ty,
   TyList,
+  tyToBool,
 } from "./types.ts";
 
 export function evalAst(ast: Ty, envChain: EnvChain): Ty {
@@ -68,6 +71,37 @@ function specialForm(ast: TyList, envChain: EnvChain): Ty | undefined {
           );
         }
       }
+      return;
+    }
+    case "if": {
+      const [, cond, conseq, alt] = ast.list;
+      const res = evalAst(cond, envChain);
+      if (tyToBool(res)) {
+        return evalAst(conseq, envChain);
+      } else {
+        return evalAst(alt, envChain);
+      }
+    }
+    case "fn*": {
+      const [, args, body] = ast.list;
+      if (args.kind !== Kind.List && args.kind !== Kind.Vector) {
+        throw new Error(
+          `unexpected token type ${args.kind}, 'fn*' args expected list or vector.`,
+        );
+      }
+      const symbols = args.list.map((param) => {
+        if (param.kind !== Kind.Symbol) {
+          throw new Error(
+            `unexpected token type: ${param.kind}, 'fn*' expected symbol.`,
+          );
+        }
+        return param;
+      });
+      return makeFunc(symbols, body, envChain);
+    }
+    case "do": {
+      // TODO
+      return;
     }
   }
 }
@@ -83,8 +117,8 @@ function apply(ls: TyList, envChain: EnvChain): Ty {
           return f.fn(...args);
         }
         case Kind.Func: {
-          // TODO
-          return f;
+          bindArgs(f, args);
+          return evalAst(f.body, f.envChain);
         }
         default: {
           throw new Error(
