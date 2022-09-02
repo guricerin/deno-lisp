@@ -103,6 +103,13 @@ export function makeSymbol(name: string): Ty {
   }
 }
 
+export function makeBool(b: boolean): TyBool {
+  return {
+    kind: Kind.Bool,
+    val: b,
+  };
+}
+
 export function tyToBool(ty: Ty): boolean {
   switch (ty.kind) {
     case Kind.Bool: {

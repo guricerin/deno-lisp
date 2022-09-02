@@ -1,8 +1,10 @@
 import {
   Env,
   Kind,
+  makeBool,
   makeBuiltinFunc,
   makeEnv,
+  makeList,
   makeNumber,
   Ty,
 } from "./types.ts";
@@ -10,22 +12,78 @@ import {
 export function makeBuiltinEnv(): Env {
   const env = makeEnv();
 
-  const arith = (op: (x: number, y: number) => number) => {
-    const res = (...args: Ty[]): Ty => {
-      const x = args[0];
-      const y = args[1];
-      if (x.kind !== Kind.Number || y.kind !== Kind.Number) {
-        throw new Error(
-          `unexpected token type: lhs ${x.kind}, rhs ${y.kind}, arith op expected both numbers.`,
-        );
-      }
-      return makeNumber(op(x.val, y.val));
-    };
-    return res;
-  };
   env.set("+", makeBuiltinFunc(arith((x, y) => x + y)));
   env.set("-", makeBuiltinFunc(arith((x, y) => x - y)));
   env.set("*", makeBuiltinFunc(arith((x, y) => x * y)));
   env.set("/", makeBuiltinFunc(arith((x, y) => x / y)));
+
+  env.set(">", makeBuiltinFunc(comparison((x, y) => x > y)));
+  env.set(">=", makeBuiltinFunc(comparison((x, y) => x >= y)));
+  env.set("<", makeBuiltinFunc(comparison((x, y) => x < y)));
+  env.set("<=", makeBuiltinFunc(comparison((x, y) => x <= y)));
+
+  builtin("list", env, (...args: Ty[]): Ty => {
+    return makeList(args);
+  });
+  builtin("list?", env, (...args: Ty[]): Ty => {
+    const x = args[0];
+    return makeBool(x.kind === Kind.List);
+  });
+  builtin("empty?", env, (...args: Ty[]): Ty => {
+    const x = args[0];
+    // TODO equal nil に置き換える。
+    if (x.kind === Kind.Nil) {
+      return makeBool(true);
+    } else if (x.kind !== Kind.List && x.kind !== Kind.Vector) {
+      throw new Error(
+        `unexpected expr type: ${x.kind}, 'empty?' expected list or vector.`,
+      );
+    } else return makeBool(x.list.length === 0);
+  });
+  builtin("count", env, (...args: Ty[]): Ty => {
+    const x = args[0];
+    // TODO equal nil に置き換える。
+    if (x.kind === Kind.Nil) {
+      return makeNumber(0);
+    }
+    if (x.kind !== Kind.List && x.kind !== Kind.Vector) {
+      throw new Error(
+        `unexpected expr type: ${x.kind}, 'count?' expected list or vector.`,
+      );
+    }
+    return makeNumber(x.list.length);
+  });
   return env;
 }
+
+const builtin = (symbol: string, env: Env, fn: (...args: Ty[]) => Ty) => {
+  env.set(symbol, makeBuiltinFunc(fn));
+};
+
+const arith = (op: (x: number, y: number) => number) => {
+  const res = (...args: Ty[]): Ty => {
+    const x = args[0];
+    const y = args[1];
+    if (x.kind !== Kind.Number || y.kind !== Kind.Number) {
+      throw new Error(
+        `unexpected expr type: lhs ${x.kind}, rhs ${y.kind}, arith op expected both numbers.`,
+      );
+    }
+    return makeNumber(op(x.val, y.val));
+  };
+  return res;
+};
+
+const comparison = (op: (x: number, y: number) => boolean) => {
+  const res = (...args: Ty[]): Ty => {
+    const x = args[0];
+    const y = args[1];
+    if (x.kind !== Kind.Number || y.kind !== Kind.Number) {
+      throw new Error(
+        `unexpected expr type: lhs ${x.kind}, rhs ${y.kind}, comparison op expected both numbers.`,
+      );
+    }
+    return makeBool(op(x.val, y.val));
+  };
+  return res;
+};

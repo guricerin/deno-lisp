@@ -25,9 +25,9 @@ Deno.test("list functions: (list)", () => {
   assertEquals(evalHelper("(list)", env), "()");
 });
 
-Deno.test("list functions: (list? (list)", () => {
+Deno.test("list functions: (list? (list))", () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper("(list? (list)", env), "true");
+  assertEquals(evalHelper("(list? (list))", env), "true");
 });
 
 Deno.test("list functions: (empty? (list))", () => {
