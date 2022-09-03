@@ -420,3 +420,43 @@ Deno.test(`if on strings: (if "" 7 8)`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(`(if "" 7 8)`, env), "7");
 });
+
+Deno.test(`string equality: (= "abc" "abc")`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(= "abc" "abc")`, env), "true");
+});
+
+Deno.test(`string equality: (= "abc" "")`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(= "abc" "")`, env), "false");
+});
+
+Deno.test(`string equality: (= "" "abc")`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(= "" "abc")`, env), "false");
+});
+
+Deno.test(`string equality: (= "abc" "def")`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(= "abc" "def")`, env), "false");
+});
+
+Deno.test(`string equality: (= "abc" "ABC")`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(= "abc" "ABC")`, env), "false");
+});
+
+Deno.test(`string equality: (= (list) "")`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(= (list) "")`, env), "false");
+});
+
+Deno.test(`string equality: (= "" (list))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(= "" (list))`, env), "false");
+});
+
+Deno.test(`string equality: (= "" "")`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(= "" "")`, env), "true");
+});
