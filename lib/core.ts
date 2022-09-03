@@ -1,6 +1,8 @@
 import {
   Env,
+  equal,
   Kind,
+  kNil,
   makeBool,
   makeBuiltinFunc,
   makeEnv,
@@ -22,6 +24,11 @@ export function makeBuiltinEnv(): Env {
   env.set("<", makeBuiltinFunc(comparison((x, y) => x < y)));
   env.set("<=", makeBuiltinFunc(comparison((x, y) => x <= y)));
 
+  builtin("=", env, (...args: Ty[]): Ty => {
+    const x = args[0];
+    const y = args[1];
+    return makeBool(equal(x, y));
+  });
   builtin("list", env, (...args: Ty[]): Ty => {
     return makeList(args);
   });
@@ -31,8 +38,7 @@ export function makeBuiltinEnv(): Env {
   });
   builtin("empty?", env, (...args: Ty[]): Ty => {
     const x = args[0];
-    // TODO equal nil に置き換える。
-    if (x.kind === Kind.Nil) {
+    if (equal(x, kNil)) {
       return makeBool(true);
     } else if (x.kind !== Kind.List && x.kind !== Kind.Vector) {
       throw new Error(
@@ -42,8 +48,7 @@ export function makeBuiltinEnv(): Env {
   });
   builtin("count", env, (...args: Ty[]): Ty => {
     const x = args[0];
-    // TODO equal nil に置き換える。
-    if (x.kind === Kind.Nil) {
+    if (equal(x, kNil)) {
       return makeNumber(0);
     }
     if (x.kind !== Kind.List && x.kind !== Kind.Vector) {

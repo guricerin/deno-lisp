@@ -104,10 +104,11 @@ export function makeSymbol(name: string): Ty {
 }
 
 export function makeBool(b: boolean): TyBool {
-  return {
-    kind: Kind.Bool,
-    val: b,
-  };
+  if (b) {
+    return kTrue;
+  } else {
+    return kFalse;
+  }
 }
 
 export function tyToBool(ty: Ty): boolean {
@@ -258,12 +259,45 @@ export function bindArgs(fn: TyFunc, args: Ty[]) {
   }
   const innerEnv = makeEnv();
   for (let i = 0; i < args.length; i++) {
-    console.log(
-      `${i} param: ${fn.params[i].name}, arg: ${JSON.stringify(args[i])}`,
-    );
     innerEnv.set(fn.params[i].name, args[i]);
   }
   fn.envChain = [innerEnv, ...fn.envChain];
+}
+
+export function equal(x: Ty, y: Ty): boolean {
+  if (x.kind === Kind.Nil && y.kind === Kind.Nil) {
+    return true;
+  } else if (x.kind === Kind.Number && y.kind === Kind.Number) {
+    return x.val === y.val;
+  } else if (x.kind === Kind.String && y.kind === Kind.String) {
+    return x.val === y.val;
+  } else if (x.kind === Kind.Symbol && y.kind === Kind.Symbol) {
+    return x.name === y.name;
+  } else if (x.kind === Kind.Bool && y.kind === Kind.Bool) {
+    return x.val === y.val;
+  } else if (x.kind === Kind.Keyword && y.kind === Kind.Keyword) {
+    return x.name === y.name;
+  } else if (x.kind === Kind.List && y.kind === Kind.List) {
+    return equalSeq(x, y);
+  } else if (x.kind === Kind.Vector && y.kind === Kind.Vector) {
+    return equalSeq(x, y);
+  }
+
+  return false;
+}
+
+function equalSeq(x: TyList | TyVector, y: TyList | TyVector): boolean {
+  if (x.kind !== y.kind) {
+    return false;
+  } else if (x.list.length !== y.list.length) {
+    return false;
+  }
+
+  return x.list.map((_, i) => {
+    return equal(x.list[i], y.list[i]);
+  }).reduce((acc, b) => {
+    return acc && b;
+  });
 }
 
 /**
