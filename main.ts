@@ -1,6 +1,7 @@
 import { stdio } from "./deps.ts";
-import { EnvChain, Ty, tyToString } from "./lib/types.ts";
-import { makeBuiltinEnv } from "./lib/env.ts";
+import { EnvChain, Ty } from "./lib/types.ts";
+import { tyToString } from "./lib/types_utils.ts";
+import { initEnvChain } from "./lib/core.ts";
 import { parse } from "./lib/reader.ts";
 import { evalAst } from "./lib/eval.ts";
 
@@ -29,7 +30,7 @@ function rep(s: string, envChain: EnvChain) {
 }
 
 (async () => {
-  const envChain: EnvChain = [makeBuiltinEnv()];
+  const envChain: EnvChain = initEnvChain();
   for await (const line of stdio.readLines(Deno.stdin)) {
     try {
       rep(line, envChain);

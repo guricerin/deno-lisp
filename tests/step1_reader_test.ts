@@ -2,7 +2,7 @@ import {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.153.0/testing/asserts.ts";
-import { tyToString } from "../lib/types.ts";
+import { tyToString } from "../lib/types_utils.ts";
 import { parse } from "../lib/reader.ts";
 
 function parseHelper(code: string): string {

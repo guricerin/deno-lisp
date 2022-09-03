@@ -2,13 +2,14 @@ import {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.153.0/testing/asserts.ts";
-import { makeBuiltinEnv } from "../lib/env.ts";
+import { initEnvChain } from "../lib/core.ts";
 import { evalAst } from "../lib/eval.ts";
 import { parse } from "../lib/reader.ts";
-import { EnvChain, tyToString } from "../lib/types.ts";
+import { EnvChain } from "../lib/types.ts";
+import { tyToString } from "../lib/types_utils.ts";
 
 function makeEnvChain() {
-  return [makeBuiltinEnv()];
+  return initEnvChain();
 }
 
 function evalHelper(code: string, envChain: EnvChain): string {
