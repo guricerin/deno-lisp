@@ -136,6 +136,101 @@ Deno.test("1-way if form: (if nil 8 7)", () => {
   assertEquals(evalHelper("(if nil 8 7)", env), "7");
 });
 
+Deno.test("basic conditionals: (= 2 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= 2 1)", env), "false");
+});
+
+Deno.test("basic conditionals: (= 1 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= 1 1)", env), "true");
+});
+
+Deno.test("basic conditionals: (= 1 2)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= 1 2)", env), "false");
+});
+
+Deno.test("basic conditionals: (= 1 (+ 1 1))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= 1 (+ 1 1))", env), "false");
+});
+
+Deno.test("basic conditionals: (= 2 (+ 1 1))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= 2 (+ 1 1))", env), "true");
+});
+
+Deno.test("basic conditionals: (= nil 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= nil 1)", env), "false");
+});
+
+Deno.test("basic conditionals: (= nil nil)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= nil nil)", env), "true");
+});
+
+Deno.test("basic conditionals: (> 2 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(> 2 1)", env), "true");
+});
+
+Deno.test("basic conditionals: (> 1 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(> 1 1)", env), "false");
+});
+
+Deno.test("basic conditionals: (> 1 2)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(> 1 2)", env), "false");
+});
+
+Deno.test("basic conditionals: (>= 2 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(>= 2 1)", env), "true");
+});
+
+Deno.test("basic conditionals: (>= 1 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(>= 1 1)", env), "true");
+});
+
+Deno.test("basic conditionals: (>= 1 2)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(>= 1 2)", env), "false");
+});
+
+Deno.test("basic conditionals: (< 2 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(< 2 1)", env), "false");
+});
+
+Deno.test("basic conditionals: (< 1 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(< 1 1)", env), "false");
+});
+
+Deno.test("basic conditionals: (< 1 2)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(< 1 2)", env), "true");
+});
+
+Deno.test("basic conditionals: (<= 2 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(<= 2 1)", env), "false");
+});
+
+Deno.test("basic conditionals: (<= 1 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(<= 1 1)", env), "true");
+});
+
+Deno.test("basic conditionals: (<= 1 2)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(<= 1 2)", env), "true");
+});
+
 Deno.test("1-way if form: (if true (+ 1 7))", () => {
   const env = makeEnvChain();
   assertEquals(evalHelper("(if true (+ 1 7))", env), "8");
@@ -162,9 +257,4 @@ Deno.test("builtin and user defined functions: ( (fn* (f x) (f x)) (fn* (a) (+ 1
     evalHelper("( (fn* (f x) (f x)) (fn* (a) (+ 1 a)) 7)", env),
     "8",
   );
-});
-
-Deno.test("builtin and user defined functions: ", () => {
-  const env = makeEnvChain();
-  assertEquals(evalHelper("", env), "");
 });
