@@ -231,6 +231,76 @@ Deno.test("basic conditionals: (<= 1 2)", () => {
   assertEquals(evalHelper("(<= 1 2)", env), "true");
 });
 
+Deno.test("equality: (= 1 1)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= 1 1)", env), "true");
+});
+
+Deno.test("equality: (= 0 0)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= 0 0)", env), "true");
+});
+
+Deno.test("equality: (= 1 0)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= 1 0)", env), "false");
+});
+
+Deno.test("equality: (= true true)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= true true)", env), "true");
+});
+
+Deno.test("equality: (= false false)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= false false)", env), "true");
+});
+
+Deno.test("equality: (= nil nil)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= nil nil)", env), "true");
+});
+
+Deno.test("equality: (= (list) (list))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= (list) (list))", env), "true");
+});
+
+Deno.test("equality: (= (list) ())", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= (list) ())", env), "true");
+});
+
+Deno.test("equality: (= (list 1 2) (list 1 2))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= (list 1 2) (list 1 2))", env), "true");
+});
+
+Deno.test("equality: (= (list 1) (list))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= (list 1) (list))", env), "false");
+});
+
+Deno.test("equality: (= (list) (list 1))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= (list) (list 1))", env), "false");
+});
+
+Deno.test("equality: (= 0 (list))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= 0 (list))", env), "false");
+});
+
+Deno.test("equality: (= (list) 0)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= (list) 0)", env), "false");
+});
+
+Deno.test("equality: (= (list nil) (list))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= (list nil) (list))", env), "false");
+});
+
 Deno.test("1-way if form: (if true (+ 1 7))", () => {
   const env = makeEnvChain();
   assertEquals(evalHelper("(if true (+ 1 7))", env), "8");

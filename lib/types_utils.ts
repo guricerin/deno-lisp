@@ -197,6 +197,8 @@ function equalSeq(x: TyList | TyVector, y: TyList | TyVector): boolean {
     return false;
   } else if (x.list.length !== y.list.length) {
     return false;
+  } else if (x.list.length === 0 && y.list.length === 0) {
+    return true;
   }
 
   return x.list.map((_, i) => {
