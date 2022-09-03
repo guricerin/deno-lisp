@@ -369,8 +369,54 @@ Deno.test("do form: (do (def! a 6) 7 (+ a 8))", () => {
   assertEquals(evalHelper("a", env), "6");
 });
 
-Deno.test("special form case-sensitivity: def! DO (fn* (a) 7))", () => {
+Deno.test("special form case-sensitivity: (def! DO (fn* (a) 7))", () => {
   const env = makeEnvChain();
   assertEquals(evalHelper("(def! DO (fn* (a) 7))", env), "#<function>");
   assertEquals(evalHelper("(DO 3)", env), "7");
+});
+
+Deno.test("recursive sumdown function", () => {
+  const env = makeEnvChain();
+  evalHelper(
+    "(def! sumdown (fn* (N) (if (> N 0) (+ N (sumdown  (- N 1))) 0)))",
+    env,
+  );
+  assertEquals(evalHelper("(sumdown 1)", env), "1");
+  assertEquals(evalHelper("(sumdown 2)", env), "3");
+  assertEquals(evalHelper("(sumdown 6)", env), "21");
+});
+
+Deno.test("recursive fibonacci function", () => {
+  const env = makeEnvChain();
+  evalHelper(
+    "(def! fib (fn* (N) (if (= N 0) 1 (if (= N 1) 1 (+ (fib (- N 1)) (fib (- N 2)))))))",
+    env,
+  );
+  assertEquals(evalHelper("(fib 1)", env), "1");
+  assertEquals(evalHelper("(fib 2)", env), "2");
+  assertEquals(evalHelper("(fib 4)", env), "5");
+});
+
+Deno.test("recursive function in environment", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(let* (f (fn* () x) x 3) (f))", env), "3");
+  assertEquals(
+    evalHelper(
+      "(let* (cst (fn* (n) (if (= n 0) nil (cst (- n 1))))) (cst 1))",
+      env,
+    ),
+    "nil",
+  );
+  assertEquals(
+    evalHelper(
+      "(let* (f (fn* (n) (if (= n 0) 0 (g (- n 1)))) g (fn* (n) (f n))) (f 2))",
+      env,
+    ),
+    "0",
+  );
+});
+
+Deno.test(`if on strings: (if "" 7 8)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(if "" 7 8)`, env), "7");
 });
