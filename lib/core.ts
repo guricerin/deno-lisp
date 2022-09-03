@@ -57,6 +57,13 @@ function makeBuiltinEnv(): Env {
   });
   builtin("prn", (...args: Ty[]): Ty => {
     const s = args.map((x) => {
+      return tyToString(x, true);
+    }).join(" ");
+    console.log(s);
+    return kNil;
+  });
+  builtin("println", (...args: Ty[]): Ty => {
+    const s = args.map((x) => {
       return tyToString(x, false);
     }).join(" ");
     console.log(s);
