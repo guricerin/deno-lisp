@@ -1,4 +1,4 @@
-import { EnvChain, Kind, Ty, TyList } from "./types.ts";
+import { EnvChain, Kind, kNil, Ty, TyList } from "./types.ts";
 import {
   bindArgs,
   makeEnv,
@@ -11,7 +11,11 @@ import {
   tyToBool,
 } from "./types_utils.ts";
 
-export function evalAst(ast: Ty, envChain: EnvChain): Ty {
+export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
+  if (!ast) {
+    return kNil;
+  }
+
   switch (ast.kind) {
     case Kind.List: {
       if (ast.list.length === 0) {
