@@ -688,58 +688,50 @@ Deno.test(`str: (str (list))`, () => {
   assertEquals(evalHelper(t, env), s);
 });
 
-Deno.test(`prn: `, () => {
+Deno.test(`prn: (prn)`, () => {
   const env = makeEnvChain();
-  const t = String.raw``;
-  const s = String.raw``;
-  assertEquals(evalHelper(t, env), s);
+  const t = String.raw`(prn)`;
+  assertEquals(evalHelper(t, env), "nil");
 });
 
-Deno.test(`prn: `, () => {
+Deno.test(`prn: (prn "")`, () => {
   const env = makeEnvChain();
-  const t = String.raw``;
-  const s = String.raw``;
-  assertEquals(evalHelper(t, env), s);
+  const t = String.raw`(prn "")`;
+  assertEquals(evalHelper(t, env), "nil");
 });
 
-Deno.test(`prn: `, () => {
+Deno.test(`prn: (prn "abc")`, () => {
   const env = makeEnvChain();
-  const t = String.raw``;
-  const s = String.raw``;
-  assertEquals(evalHelper(t, env), s);
+  const t = String.raw`(prn "abc")`;
+  assertEquals(evalHelper(t, env), "nil");
 });
 
-Deno.test(`prn: `, () => {
+Deno.test(`prn: (prn "abc  def" "ghi jkl")`, () => {
   const env = makeEnvChain();
-  const t = String.raw``;
-  const s = String.raw``;
-  assertEquals(evalHelper(t, env), s);
+  const t = String.raw`(prn "abc  def" "ghi jkl")`;
+  assertEquals(evalHelper(t, env), "nil");
 });
 
-Deno.test(`prn: `, () => {
+Deno.test(`prn: (prn "\"")`, () => {
   const env = makeEnvChain();
-  const t = String.raw``;
-  const s = String.raw``;
-  assertEquals(evalHelper(t, env), s);
+  const t = String.raw`(prn "\"")`;
+  assertEquals(evalHelper(t, env), "nil");
 });
 
-Deno.test(`prn: `, () => {
+Deno.test(`prn: (prn "abc\ndef\nghi")`, () => {
   const env = makeEnvChain();
-  const t = String.raw``;
-  const s = String.raw``;
-  assertEquals(evalHelper(t, env), s);
+  const t = String.raw`(prn "abc\ndef\nghi")`;
+  assertEquals(evalHelper(t, env), "nil");
 });
 
-Deno.test(`prn: `, () => {
+Deno.test(`prn: (prn "abc\\def\\ghi")`, () => {
   const env = makeEnvChain();
-  const t = String.raw``;
-  const s = String.raw``;
-  assertEquals(evalHelper(t, env), s);
+  const t = String.raw`(prn "abc\\def\\ghi")`;
+  assertEquals(evalHelper(t, env), "nil");
 });
 
-Deno.test(`prn: `, () => {
+Deno.test(`prn: (prn (list 1 2 "abc" "\"") "def")`, () => {
   const env = makeEnvChain();
-  const t = String.raw``;
-  const s = String.raw``;
-  assertEquals(evalHelper(t, env), s);
+  const t = String.raw`(prn (list 1 2 "abc" "\"") "def")`;
+  assertEquals(evalHelper(t, env), "nil");
 });

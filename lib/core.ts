@@ -43,11 +43,6 @@ function makeBuiltinEnv(): Env {
     const y = args[1];
     return makeBool(equal(x, y));
   });
-  builtin("prn", (...args: Ty[]): Ty => {
-    const x = args[0];
-    console.log(tyToString(x, true));
-    return kNil;
-  });
   builtin("pr-str", (...args: Ty[]): Ty => {
     const s = args.map((x) => {
       return tyToString(x, true);
@@ -59,6 +54,13 @@ function makeBuiltinEnv(): Env {
       return tyToString(x, false);
     }).join("");
     return makeString(s);
+  });
+  builtin("prn", (...args: Ty[]): Ty => {
+    const s = args.map((x) => {
+      return tyToString(x, false);
+    }).join(" ");
+    console.log(s);
+    return kNil;
   });
   builtin("list", (...args: Ty[]): Ty => {
     return makeList(args);
