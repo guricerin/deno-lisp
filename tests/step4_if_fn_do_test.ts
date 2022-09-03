@@ -807,3 +807,163 @@ Deno.test(`keywords: (= (list :abc) (list :abc))`, () => {
   const t = String.raw`(= (list :abc) (list :abc))`;
   assertEquals(evalHelper(t, env), "true");
 });
+
+Deno.test(`vector truthiness: (if [] 7 8)`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(if [] 7 8)`;
+  assertEquals(evalHelper(t, env), "7");
+});
+
+Deno.test(`vector printing: (pr-str [1 2 "abc" "\""] "def")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(pr-str [1 2 "abc" "\""] "def")`;
+  const s = String.raw`"[1 2 \"abc\" \"\\\"\"] \"def\""`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector printing: (pr-str [])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(pr-str [])`;
+  const s = String.raw`"[]"`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector printing: (str [1 2 "abc" "\""] "def")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(str [1 2 "abc" "\""] "def")`;
+  const s = String.raw`"[1 2 abc \"]def"`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector printing: (str [])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(str [])`;
+  const s = String.raw`"[]"`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector functions: (count [1 2 3])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(count [1 2 3])`;
+  const s = String.raw`3`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector functions: (empty? [1 2 3])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(empty? [1 2 3])`;
+  const s = String.raw`false`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector functions: (empty? [])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(empty? [])`;
+  const s = String.raw`true`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector functions: (list? [4 5 6])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(list? [4 5 6])`;
+  const s = String.raw`false`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector equality: (= [] (list))`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= [] (list))`;
+  const s = String.raw`true`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector equality: (= [7 8] [7 8])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= [7 8] [7 8])`;
+  const s = String.raw`true`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector equality: (= [:abc] [:abc])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= [:abc] [:abc])`;
+  const s = String.raw`true`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector equality: (= (list 1 2) [1 2])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= (list 1 2) [1 2])`;
+  const s = String.raw`true`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector equality: (= (list 1) [])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= (list 1) [])`;
+  const s = String.raw`false`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector equality: (= [] [1])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= [] [1])`;
+  const s = String.raw`false`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector equality: (= 0 [])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= 0 [])`;
+  const s = String.raw`false`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector equality: (= [] 0)`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= [] 0)`;
+  const s = String.raw`false`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector equality: (= [] "")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= [] "")`;
+  const s = String.raw`false`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector equality: (= "" [])`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= "" [])`;
+  const s = String.raw`false`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector parameter lists: ( (fn* [] 4) )`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`( (fn* [] 4) )`;
+  const s = String.raw`4`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`vector parameter lists: ( (fn* [f x] (f x)) (fn* [a] (+ 1 a)) 7)`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`( (fn* [f x] (f x)) (fn* [a] (+ 1 a)) 7)`;
+  const s = String.raw`8`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`Nested vector/list equality: (= [(list)] (list []))`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= [(list)] (list []))`;
+  const s = String.raw`true`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`Nested vector/list equality: (= [1 2 (list 3 4 [5 6])] (list 1 2 [3 4 (list 5 6)]))`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= [1 2 (list 3 4 [5 6])] (list 1 2 [3 4 (list 5 6)]))`;
+  const s = String.raw`true`;
+  assertEquals(evalHelper(t, env), s);
+});

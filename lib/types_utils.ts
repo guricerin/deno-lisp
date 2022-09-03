@@ -202,15 +202,17 @@ export function equal(x: Ty, y: Ty): boolean {
     return equalSeq(x, y);
   } else if (x.kind === Kind.Vector && y.kind === Kind.Vector) {
     return equalSeq(x, y);
+  } else if (x.kind === Kind.List && y.kind === Kind.Vector) {
+    return equalSeq(x, y);
+  } else if (x.kind === Kind.Vector && y.kind === Kind.List) {
+    return equalSeq(x, y);
   }
 
   return false;
 }
 
 function equalSeq(x: TyList | TyVector, y: TyList | TyVector): boolean {
-  if (x.kind !== y.kind) {
-    return false;
-  } else if (x.list.length !== y.list.length) {
+  if (x.list.length !== y.list.length) {
     return false;
   } else if (x.list.length === 0 && y.list.length === 0) {
     return true;
