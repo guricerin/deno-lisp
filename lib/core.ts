@@ -6,6 +6,8 @@ import {
   makeEnv,
   makeList,
   makeNumber,
+  tyToBool,
+  tyToString,
 } from "./types_utils.ts";
 
 export function makeBuiltinEnv(): Env {
@@ -25,6 +27,11 @@ export function makeBuiltinEnv(): Env {
     const x = args[0];
     const y = args[1];
     return makeBool(equal(x, y));
+  });
+  builtin("prn", env, (...args: Ty[]): Ty => {
+    const x = args[0];
+    console.log(tyToString(x, true));
+    return kNil;
   });
   builtin("list", env, (...args: Ty[]): Ty => {
     return makeList(args);

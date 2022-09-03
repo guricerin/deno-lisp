@@ -348,7 +348,29 @@ Deno.test("closures: plusX", () => {
   assertEquals(evalHelper("(plus7 8)", env), "15");
 });
 
-Deno.test("do form: ", () => {
+Deno.test("do form: (do (prn 101))", () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper("", env), "");
+  assertEquals(evalHelper("(do (prn 101))", env), "nil");
+});
+
+Deno.test("do form: (do (prn 102) 7)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(do (prn 102) 7)", env), "7");
+});
+
+Deno.test("do form: (do (prn 101) (prn 102) (+ 1 2))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(do (prn 101) (prn 102) (+ 1 2))", env), "3");
+});
+
+Deno.test("do form: (do (def! a 6) 7 (+ a 8))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(do (def! a 6) 7 (+ a 8))", env), "14");
+  assertEquals(evalHelper("a", env), "6");
+});
+
+Deno.test("special form case-sensitivity: def! DO (fn* (a) 7))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(def! DO (fn* (a) 7))", env), "#<function>");
+  assertEquals(evalHelper("(DO 3)", env), "7");
 });

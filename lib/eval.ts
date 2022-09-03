@@ -101,8 +101,10 @@ function specialForm(ast: TyList, envChain: EnvChain): Ty | undefined {
       return makeFunc(symbols, body, envChain);
     }
     case "do": {
-      // TODO
-      return;
+      const [, ...body] = ast.list;
+      return body.map((x) => {
+        return evalAst(x, envChain);
+      }).slice(-1)[0];
     }
   }
 }
