@@ -18,6 +18,8 @@ function evalHelper(code: string, envChain: EnvChain): string {
   return tyToString(res, true);
 }
 
+// 末尾再帰最適化がなされていない場合、これらのテストケースはtypescriptのほうでコールスタックが尽きる。
+
 Deno.test(`recursive tail-call function`, () => {
   const env = makeEnvChain();
   evalHelper(
