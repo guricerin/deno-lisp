@@ -121,7 +121,7 @@ function apply(ls: TyList, envChain: EnvChain): Ty {
         }
         case Kind.Func: {
           bindArgs(f, args);
-          return evalAst(f.body, f.envChain);
+          return evalAst(f.body, f.closure);
         }
         default: {
           throw new Error(

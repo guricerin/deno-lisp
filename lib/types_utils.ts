@@ -153,21 +153,31 @@ export function makeFunc(
     kind: Kind.Func,
     params: params,
     body: body,
-    envChain: envChain,
+    closure: envChain,
   };
 }
 
 export function bindArgs(fn: TyFunc, args: Ty[]) {
-  if (fn.params.length !== args.length) {
-    throw new Error(
-      `function params length (${fn.params.length}) is not equal args length (${args.length}).`,
-    );
-  }
   const innerEnv = makeEnv();
-  for (let i = 0; i < args.length; i++) {
+  for (let i = 0; i < fn.params.length; i++) {
+    // 可変長引数
+    // ex. (fn* (& more) (count more))
+    if (fn.params[i].name === "&") {
+      if (fn.params.length <= i + 1) {
+        throw new Error(`& (variable length arguments) need to take 1 param.`);
+      }
+      innerEnv.set(fn.params[i + 1].name, makeList(args.slice(i)));
+      break;
+    }
+
+    if (args.length <= i) {
+      throw new Error(
+        `function params length (${fn.params.length}) is not equal args length (${args.length}).`,
+      );
+    }
     innerEnv.set(fn.params[i].name, args[i]);
   }
-  fn.envChain = [innerEnv, ...fn.envChain];
+  fn.closure = [innerEnv, ...fn.closure];
 }
 
 export function equal(x: Ty, y: Ty): boolean {

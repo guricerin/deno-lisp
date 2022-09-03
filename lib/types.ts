@@ -109,5 +109,5 @@ export interface TyFunc {
    */
   params: TySymbol[];
   body: Ty;
-  envChain: EnvChain;
+  closure: EnvChain;
 }

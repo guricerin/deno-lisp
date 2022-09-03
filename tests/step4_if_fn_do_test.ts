@@ -456,7 +456,42 @@ Deno.test(`string equality: (= "" (list))`, () => {
   assertEquals(evalHelper(`(= "" (list))`, env), "false");
 });
 
-Deno.test(`string equality: (= "" "")`, () => {
+Deno.test(`variable length arguments: ( (fn* (& more) (count more)) 1 2 3)`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(`(= "" "")`, env), "true");
+  assertEquals(evalHelper(`( (fn* (& more) (count more)) 1 2 3)`, env), "3");
+});
+
+Deno.test(`variable length arguments: ( (fn* (& more) (list? more)) 1 2 3)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`( (fn* (& more) (list? more)) 1 2 3)`, env), "true");
+});
+
+Deno.test(`variable length arguments: ( (fn* (& more) (count more)) 1)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`( (fn* (& more) (count more)) 1)`, env), "1");
+});
+
+Deno.test(`variable length arguments: ( (fn* (& more) (count more)) )`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`( (fn* (& more) (count more)) )`, env), "0");
+});
+
+Deno.test(`variable length arguments: ( (fn* (& more) (list? more)) )`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`( (fn* (& more) (list? more)) )`, env), "true");
+});
+
+Deno.test(`variable length arguments: ( (fn* (a & more) (count more)) 1 2 3)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`( (fn* (a & more) (count more)) 1 2 3)`, env), "2");
+});
+
+Deno.test(`variable length arguments: ( (fn* (a & more) (count more)) 1)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`( (fn* (a & more) (count more)) 1)`, env), "0");
+});
+
+Deno.test(`variable length arguments: ( (fn* (a & more) (list? more)) 1)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`( (fn* (a & more) (list? more)) 1)`, env), "true");
 });
