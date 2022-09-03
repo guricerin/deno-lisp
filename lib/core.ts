@@ -1,15 +1,12 @@
+import { Env, Kind, kNil, Ty } from "./types.ts";
 import {
-  Env,
   equal,
-  Kind,
-  kNil,
   makeBool,
   makeBuiltinFunc,
   makeEnv,
   makeList,
   makeNumber,
-  Ty,
-} from "./types.ts";
+} from "./types_utils.ts";
 
 export function makeBuiltinEnv(): Env {
   const env = makeEnv();

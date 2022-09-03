@@ -1,15 +1,10 @@
+import { Kind, Ty, TyList, TyNumber, TyString, TySymbol } from "./types.ts";
 import {
-  Kind,
   makeHashMap,
   makeList,
   makeSymbol,
   makeVector,
-  Ty,
-  TyList,
-  TyNumber,
-  TyString,
-  TySymbol,
-} from "./types.ts";
+} from "./types_utils.ts";
 
 export class Reader {
   private pos: number = 0;

@@ -5,7 +5,8 @@ import {
 import { makeBuiltinEnv } from "../lib/core.ts";
 import { evalAst } from "../lib/eval.ts";
 import { parse } from "../lib/reader.ts";
-import { EnvChain, tyToString } from "../lib/types.ts";
+import { EnvChain } from "../lib/types.ts";
+import { tyToString } from "../lib/types_utils.ts";
 
 function makeEnvChain() {
   return [makeBuiltinEnv()];
@@ -70,6 +71,76 @@ Deno.test("list functions: (if (>= (count (list 1 2 3)) 3) 89 78)", () => {
   assertEquals(evalHelper("(if (>= (count (list 1 2 3)) 3) 89 78)", env), "89");
 });
 
+Deno.test("if form: (if true 7 8)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if true 7 8)", env), "7");
+});
+
+Deno.test("if form: (if false 7 8)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if false 7 8)", env), "8");
+});
+
+Deno.test("if form: (if false 7 false)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if false 7 false)", env), "false");
+});
+
+Deno.test("if form: (if true (+ 1 7) (+ 1 8))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if true (+ 1 7) (+ 1 8))", env), "8");
+});
+
+Deno.test("if form: (if false (+ 1 7) (+ 1 8))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if false (+ 1 7) (+ 1 8))", env), "9");
+});
+
+Deno.test("if form: (if nil 7 8)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if nil 7 8)", env), "8");
+});
+
+Deno.test("if form: (if 0 7 8)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if 0 7 8)", env), "8");
+});
+
+Deno.test("if form: (if (list) 7 8)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if (list) 7 8)", env), "7");
+});
+
+Deno.test("if form: (if (list 1 2 3) 7 8)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if (list 1 2 3) 7 8)", env), "7");
+});
+
+Deno.test("if form: (= (list) nil)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(= (list) nil)", env), "false");
+});
+
+Deno.test("1-way if form: (if false (+ 1 7))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if false (+ 1 7))", env), "nil");
+});
+
+Deno.test("1-way if form: (if nil 8)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if nil 8)", env), "nil");
+});
+
+Deno.test("1-way if form: (if nil 8 7)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if nil 8 7)", env), "7");
+});
+
+Deno.test("1-way if form: (if true (+ 1 7))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if true (+ 1 7))", env), "8");
+});
+
 Deno.test("builtin and user defined functions: (+ 1 2)", () => {
   const env = makeEnvChain();
   assertEquals(evalHelper("(+ 1 2)", env), "3");
@@ -94,11 +165,6 @@ Deno.test("builtin and user defined functions: ( (fn* (f x) (f x)) (fn* (a) (+ 1
 });
 
 Deno.test("builtin and user defined functions: ", () => {
-  const env = makeEnvChain();
-  assertEquals(evalHelper("", env), "");
-});
-
-Deno.test("list functions: ", () => {
   const env = makeEnvChain();
   assertEquals(evalHelper("", env), "");
 });

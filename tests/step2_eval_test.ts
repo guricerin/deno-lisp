@@ -5,7 +5,7 @@ import {
 import { makeBuiltinEnv } from "../lib/core.ts";
 import { evalAst } from "../lib/eval.ts";
 import { parse } from "../lib/reader.ts";
-import { tyToString } from "../lib/types.ts";
+import { tyToString } from "../lib/types_utils.ts";
 
 const envChain = [makeBuiltinEnv()];
 

@@ -1,7 +1,6 @@
+import { EnvChain, Kind, Ty, TyList } from "./types.ts";
 import {
   bindArgs,
-  EnvChain,
-  Kind,
   makeEnv,
   makeFunc,
   makeHashMap,
@@ -9,10 +8,8 @@ import {
   makeVector,
   resolveSymbol,
   storeKeyVal,
-  Ty,
-  TyList,
   tyToBool,
-} from "./types.ts";
+} from "./types_utils.ts";
 
 export function evalAst(ast: Ty, envChain: EnvChain): Ty {
   switch (ast.kind) {
@@ -41,7 +38,7 @@ function specialForm(ast: TyList, envChain: EnvChain): Ty | undefined {
       const [, key, val] = ast.list;
       if (key.kind !== Kind.Symbol) {
         throw new Error(
-          `unexpected token type: ${key.kind}, 'def!' expected symbol.`,
+          `unexpected expr type: ${key.kind}, 'def!' expected symbol.`,
         );
       }
       return storeKeyVal(key, evalAst(val, envChain), envChain);
@@ -58,7 +55,7 @@ function specialForm(ast: TyList, envChain: EnvChain): Ty | undefined {
             const val = list[i + 1];
             if (key.kind !== Kind.Symbol) {
               throw new Error(
-                `unexpected token type: ${key.kind}, expected symbol.`,
+                `unexpected expr type: ${key.kind}, expected symbol.`,
               );
             }
             storeKeyVal(key, evalAst(val, letEnvChain), letEnvChain);
@@ -67,7 +64,7 @@ function specialForm(ast: TyList, envChain: EnvChain): Ty | undefined {
         }
         default: {
           throw new Error(
-            `unexpected token type: ${pairs.kind}, 'let*' expected list or vector.`,
+            `unexpected expr type: ${pairs.kind}, 'let*' expected list or vector.`,
           );
         }
       }
@@ -86,13 +83,13 @@ function specialForm(ast: TyList, envChain: EnvChain): Ty | undefined {
       const [, args, body] = ast.list;
       if (args.kind !== Kind.List && args.kind !== Kind.Vector) {
         throw new Error(
-          `unexpected token type ${args.kind}, 'fn*' args expected list or vector.`,
+          `unexpected expr type ${args.kind}, 'fn*' args expected list or vector.`,
         );
       }
       const symbols = args.list.map((param) => {
         if (param.kind !== Kind.Symbol) {
           throw new Error(
-            `unexpected token type: ${param.kind}, 'fn*' expected symbol.`,
+            `unexpected expr type: ${param.kind}, 'fn*' expected symbol.`,
           );
         }
         return param;
@@ -122,14 +119,14 @@ function apply(ls: TyList, envChain: EnvChain): Ty {
         }
         default: {
           throw new Error(
-            `unexpected token type: ${f.kind}, expected: builtin-fn or function`,
+            `unexpected expr type: ${f.kind}, expected: builtin-fn or function`,
           );
         }
       }
     }
     default: {
       throw new Error(
-        `unexpected token type: ${result.kind}, expected: list or vector.`,
+        `unexpected expr type: ${result.kind}, expected: list or vector.`,
       );
     }
   }
