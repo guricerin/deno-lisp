@@ -13,6 +13,7 @@ import {
   TyHashMap,
   TyList,
   TyNumber,
+  TyString,
   TySymbol,
   TyVector,
 } from "./types.ts";
@@ -27,6 +28,13 @@ export function makeList(list: Ty[]): TyList {
 export function makeNumber(v: number): TyNumber {
   return {
     kind: Kind.Number,
+    val: v,
+  };
+}
+
+export function makeString(v: string): TyString {
+  return {
+    kind: Kind.String,
     val: v,
   };
 }

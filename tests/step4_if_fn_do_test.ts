@@ -560,7 +560,66 @@ Deno.test(`string quoting: "\\n"`, () => {
   assertEquals(evalHelper(s, env), s);
 });
 
+Deno.test(`pr-str: (pr-str)`, () => {
+  const env = makeEnvChain();
+  const s = String.raw`""`;
+  assertEquals(evalHelper(`(pr-str)`, env), s);
+});
+
+Deno.test(`pr-str: (pr-str "")`, () => {
+  const env = makeEnvChain();
+  const s = String.raw`"\"\""`;
+  assertEquals(evalHelper(`(pr-str "")`, env), s);
+});
+
+Deno.test(`pr-str: (pr-str "abc")`, () => {
+  const env = makeEnvChain();
+  const s = String.raw`"\"abc\""`;
+  assertEquals(evalHelper(`(pr-str "abc")`, env), s);
+});
+
+Deno.test(`pr-str: (pr-str "abc  def" "ghi jkl")`, () => {
+  const env = makeEnvChain();
+  const s = String.raw`"\"abc  def\" \"ghi jkl\""`;
+  assertEquals(evalHelper(`(pr-str "abc  def" "ghi jkl")`, env), s);
+});
+
+Deno.test(`pr-str: (pr-str "\"")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(pr-str "\"")`;
+  const s = String.raw`"\"\\\"\""`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`pr-str: (pr-str (list 1 2 "abc" "\"") "def")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(pr-str (list 1 2 "abc" "\"") "def")`;
+  const s = String.raw`"(1 2 \"abc\" \"\\\"\") \"def\""`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`pr-str: (pr-str "abc\ndef\nghi")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(pr-str "abc\ndef\nghi")`;
+  const s = String.raw`"\"abc\\ndef\\nghi\""`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`pr-str: (pr-str "abc\\def\\ghi")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(pr-str "abc\\def\\ghi")`;
+  const s = String.raw`"\"abc\\\\def\\\\ghi\""`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`pr-str: (pr-str (list))`, () => {
+  const env = makeEnvChain();
+  const s = String.raw`"()"`;
+  assertEquals(evalHelper(`(pr-str (list))`, env), s);
+});
+
 Deno.test(`pr-str: `, () => {
   const env = makeEnvChain();
+  const s = String.raw``;
   assertEquals(evalHelper(``, env), ``);
 });

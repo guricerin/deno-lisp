@@ -6,6 +6,7 @@ import {
   makeEnv,
   makeList,
   makeNumber,
+  makeString,
   tyToString,
 } from "./types_utils.ts";
 import { parse } from "./reader.ts";
@@ -42,6 +43,12 @@ function makeBuiltinEnv(): Env {
     const x = args[0];
     console.log(tyToString(x, true));
     return kNil;
+  });
+  builtin("pr-str", env, (...args: Ty[]): Ty => {
+    const s = args.map((x) => {
+      return tyToString(x, true);
+    }).join(" ");
+    return makeString(s);
   });
   builtin("list", env, (...args: Ty[]): Ty => {
     return makeList(args);

@@ -104,7 +104,7 @@ function specialForm(ast: TyList, envChain: EnvChain): Ty | undefined {
       const [, ...body] = ast.list;
       return body.map((x) => {
         return evalAst(x, envChain);
-      }).slice(-1)[0];
+      }).slice(-1)[0]; // 最後の式を返り値とする。
     }
   }
 }
