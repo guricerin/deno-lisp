@@ -34,30 +34,40 @@ function makeBuiltinEnv(): Env {
   env.set("<", makeBuiltinFunc(comparison((x, y) => x < y)));
   env.set("<=", makeBuiltinFunc(comparison((x, y) => x <= y)));
 
-  builtin("=", env, (...args: Ty[]): Ty => {
+  const builtin = (symbol: string, fn: (...args: Ty[]) => Ty) => {
+    env.set(symbol, makeBuiltinFunc(fn));
+  };
+
+  builtin("=", (...args: Ty[]): Ty => {
     const x = args[0];
     const y = args[1];
     return makeBool(equal(x, y));
   });
-  builtin("prn", env, (...args: Ty[]): Ty => {
+  builtin("prn", (...args: Ty[]): Ty => {
     const x = args[0];
     console.log(tyToString(x, true));
     return kNil;
   });
-  builtin("pr-str", env, (...args: Ty[]): Ty => {
+  builtin("pr-str", (...args: Ty[]): Ty => {
     const s = args.map((x) => {
       return tyToString(x, true);
     }).join(" ");
     return makeString(s);
   });
-  builtin("list", env, (...args: Ty[]): Ty => {
+  builtin("str", (...args: Ty[]): Ty => {
+    const s = args.map((x) => {
+      return tyToString(x, false);
+    }).join("");
+    return makeString(s);
+  });
+  builtin("list", (...args: Ty[]): Ty => {
     return makeList(args);
   });
-  builtin("list?", env, (...args: Ty[]): Ty => {
+  builtin("list?", (...args: Ty[]): Ty => {
     const x = args[0];
     return makeBool(x.kind === Kind.List);
   });
-  builtin("empty?", env, (...args: Ty[]): Ty => {
+  builtin("empty?", (...args: Ty[]): Ty => {
     const x = args[0];
     if (equal(x, kNil)) {
       return makeBool(true);
@@ -67,7 +77,7 @@ function makeBuiltinEnv(): Env {
       );
     } else return makeBool(x.list.length === 0);
   });
-  builtin("count", env, (...args: Ty[]): Ty => {
+  builtin("count", (...args: Ty[]): Ty => {
     const x = args[0];
     if (equal(x, kNil)) {
       return makeNumber(0);
@@ -81,10 +91,6 @@ function makeBuiltinEnv(): Env {
   });
   return env;
 }
-
-const builtin = (symbol: string, env: Env, fn: (...args: Ty[]) => Ty) => {
-  env.set(symbol, makeBuiltinFunc(fn));
-};
 
 const arith = (op: (x: number, y: number) => number) => {
   const res = (...args: Ty[]): Ty => {
