@@ -59,3 +59,10 @@ Deno.test(`Differing output, but make sure no fatal error`, () => {
   const s = String.raw`nil`;
   assertEquals(evalHelper(t, env), s);
 });
+
+Deno.test(`eval: (eval (read-string "(+ 2 3)"))`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(eval (read-string "(+ 2 3)"))`;
+  const s = String.raw`5`;
+  assertEquals(evalHelper(t, env), s);
+});

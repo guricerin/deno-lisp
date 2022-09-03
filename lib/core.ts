@@ -111,6 +111,24 @@ function makeBuiltinEnv(): Env {
       }
     }
   });
+  builtin("eval", (...args: Ty[]): Ty => {
+    const x = args[0];
+    return evalAst(x, [env]);
+  });
+  builtin("slurp", (...args: Ty[]): Ty => {
+    const x = args[0];
+    switch (x.kind) {
+      case Kind.String: {
+        const text = Deno.readTextFileSync(x.val);
+        return makeString(text);
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'slurp' expected string.`,
+        );
+      }
+    }
+  });
   return env;
 }
 
