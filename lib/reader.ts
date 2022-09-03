@@ -1,7 +1,10 @@
 import { Kind, Ty, TyList, TyNumber, TyString, TySymbol } from "./types.ts";
 import {
   makeHashMap,
+  makeKeyword,
   makeList,
+  makeNumber,
+  makeString,
   makeSymbol,
   makeVector,
 } from "./types_utils.ts";
@@ -124,48 +127,30 @@ function parseCollection(
 
 function parseQuotes(reader: Reader, name: string): TyList {
   reader.next();
-  const sym: TySymbol = {
-    kind: Kind.Symbol,
-    name: name,
-  };
+  const sym = makeSymbol(name);
   const target = parseForm(reader);
-  return {
-    kind: Kind.List,
-    list: [sym, target],
-  };
+  return makeList([sym, target]);
 }
 
 function parseAtom(reader: Reader): Ty {
   const token = reader.next();
-  eofCheck(token, "(EOF|end of input|unbalanced).");
+  eofCheck(token, "unexpected eof, expected atom.");
 
   if (token.match(/^-?[0-9]+$/)) {
     const v = parseInt(token, 10);
-    return {
-      kind: Kind.Number,
-      val: v,
-    };
+    return makeNumber(v);
   } else if (token.match(/^-?[0-9]\.[0-9]+$/)) {
     const v = parseFloat(token);
-    return {
-      kind: Kind.Number,
-      val: v,
-    };
+    return makeNumber(v);
   } else if (token.match(/^"(?:\\.|[^\\"])*"$/)) {
     const v = token
       .slice(1, token.length - 1) // ""の中を取り出す。
       .replace(/\\(.)/g, (_, c: string) => c == "n" ? "\n" : c);
-    return {
-      kind: Kind.String,
-      val: v,
-    };
+    return makeString(v);
   } else if (token[0] === '"') { // unbalanced double quotes
     throw new Error("unexpected EOF, expected '\"'");
   } else if (token[0] === ":") {
-    return {
-      kind: Kind.Keyword,
-      name: token.substring(1),
-    };
+    return makeKeyword(token.substring(1));
   }
 
   return makeSymbol(token);

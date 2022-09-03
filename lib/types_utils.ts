@@ -11,6 +11,8 @@ import {
   TyBuiltinFn,
   TyFunc,
   TyHashMap,
+  TyKey,
+  TyKeyword,
   TyList,
   TyNumber,
   TyString,
@@ -36,6 +38,13 @@ export function makeString(v: string): TyString {
   return {
     kind: Kind.String,
     val: v,
+  };
+}
+
+export function makeKeyword(name: string): TyKeyword {
+  return {
+    kind: Kind.Keyword,
+    name: name,
   };
 }
 
