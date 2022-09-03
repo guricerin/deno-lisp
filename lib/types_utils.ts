@@ -245,7 +245,7 @@ export function tyToString(ty: Ty, readably: boolean): string {
           .replace(/\n/g, "\\n");
         return `"${s}"`;
       } else {
-        return `"${ty.val}"`;
+        return ty.val;
       }
     }
     case Kind.Nil: {

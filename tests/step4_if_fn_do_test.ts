@@ -618,8 +618,128 @@ Deno.test(`pr-str: (pr-str (list))`, () => {
   assertEquals(evalHelper(`(pr-str (list))`, env), s);
 });
 
-Deno.test(`pr-str: `, () => {
+Deno.test(`str: (str)`, () => {
   const env = makeEnvChain();
+  const t = String.raw`(str)`;
+  const s = String.raw`""`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`str: (str "")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(str "")`;
+  const s = String.raw`""`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`str: (str "abc")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(str "abc")`;
+  const s = String.raw`"abc"`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`str: (str "\"")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(str "\"")`;
+  const s = String.raw`"\""`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`str: (str 1 "abc" 3)`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(str 1 "abc" 3)`;
+  const s = String.raw`"1abc3"`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`str: (str "abc  def" "ghi jkl")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(str "abc  def" "ghi jkl")`;
+  const s = String.raw`"abc  defghi jkl"`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`str: (str "abc\ndef\nghi")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(str "abc\ndef\nghi")`;
+  const s = String.raw`"abc\ndef\nghi"`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`str: (str "abc\\def\\ghi")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(str "abc\\def\\ghi")`;
+  const s = String.raw`"abc\\def\\ghi"`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`str: (str (list 1 2 "abc" "\"") "def")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(str (list 1 2 "abc" "\"") "def")`;
+  const s = String.raw`"(1 2 abc \")def"`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`str: (str (list))`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(str (list))`;
+  const s = String.raw`"()"`;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`prn: `, () => {
+  const env = makeEnvChain();
+  const t = String.raw``;
   const s = String.raw``;
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`prn: `, () => {
+  const env = makeEnvChain();
+  const t = String.raw``;
+  const s = String.raw``;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`prn: `, () => {
+  const env = makeEnvChain();
+  const t = String.raw``;
+  const s = String.raw``;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`prn: `, () => {
+  const env = makeEnvChain();
+  const t = String.raw``;
+  const s = String.raw``;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`prn: `, () => {
+  const env = makeEnvChain();
+  const t = String.raw``;
+  const s = String.raw``;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`prn: `, () => {
+  const env = makeEnvChain();
+  const t = String.raw``;
+  const s = String.raw``;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`prn: `, () => {
+  const env = makeEnvChain();
+  const t = String.raw``;
+  const s = String.raw``;
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`prn: `, () => {
+  const env = makeEnvChain();
+  const t = String.raw``;
+  const s = String.raw``;
+  assertEquals(evalHelper(t, env), s);
 });
