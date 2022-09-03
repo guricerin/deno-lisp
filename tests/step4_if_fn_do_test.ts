@@ -520,3 +520,47 @@ Deno.test(`language defined not function: (not 0)`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(`(not 0)`, env), "false");
 });
+
+Deno.test(`string quoting: ""`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`""`, env), `""`);
+});
+
+Deno.test(`string quoting: "abc"`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`"abc"`, env), `"abc"`);
+});
+
+Deno.test(`string quoting: "abc  def"`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`"abc  def"`, env), `"abc  def"`);
+});
+
+Deno.test(`string quoting: "\""`, () => {
+  const env = makeEnvChain();
+  const s = String.raw`"\""`;
+  assertEquals(evalHelper(s, env), s);
+});
+
+Deno.test(`string quoting: "abc\\ndef\\nghi"`, () => {
+  const env = makeEnvChain();
+  const s = String.raw`"abc\ndef\nghi"`;
+  assertEquals(evalHelper(s, env), s);
+});
+
+Deno.test(`string quoting: "abc\\def\\ghi"`, () => {
+  const env = makeEnvChain();
+  const s = String.raw`"abc\\def\\ghi"`;
+  assertEquals(evalHelper(s, env), s);
+});
+
+Deno.test(`string quoting: "\\n"`, () => {
+  const env = makeEnvChain();
+  const s = String.raw`"\\n"`;
+  assertEquals(evalHelper(s, env), s);
+});
+
+Deno.test(`pr-str: `, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
