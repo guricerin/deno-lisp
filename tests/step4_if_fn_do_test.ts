@@ -783,3 +783,27 @@ Deno.test(`println: (println (list 1 2 "abc" "\"") "def")`, () => {
   const t = String.raw`(println (list 1 2 "abc" "\"") "def")`;
   assertEquals(evalHelper(t, env), "nil");
 });
+
+Deno.test(`keywords: (= :abc :abc)`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= :abc :abc)`;
+  assertEquals(evalHelper(t, env), "true");
+});
+
+Deno.test(`keywords: (= :abc :def)`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= :abc :def)`;
+  assertEquals(evalHelper(t, env), "false");
+});
+
+Deno.test(`keywords: (= :abc ":abc")`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= :abc ":abc")`;
+  assertEquals(evalHelper(t, env), "false");
+});
+
+Deno.test(`keywords: (= (list :abc) (list :abc))`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(= (list :abc) (list :abc))`;
+  assertEquals(evalHelper(t, env), "true");
+});
