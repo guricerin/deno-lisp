@@ -66,3 +66,17 @@ Deno.test(`eval: (eval (read-string "(+ 2 3)"))`, () => {
   const s = String.raw`5`;
   assertEquals(evalHelper(t, env), s);
 });
+
+Deno.test(`Load the same file twice.`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(slurp "./tests/mal/test.txt")`; // 相対パスは、denoコマンドを実行したパス基準。
+  const s = String.raw`"A line of text\n"`;
+  assertEquals(evalHelper(t, env), s);
+  assertEquals(evalHelper(t, env), s);
+});
+
+Deno.test(`Checking that eval does not use local environments.`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(def! a 1)`, env), "1");
+  assertEquals(evalHelper(`(let* (a 2) (eval (read-string "a")))`, env), "1");
+});
