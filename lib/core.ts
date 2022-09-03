@@ -98,6 +98,19 @@ function makeBuiltinEnv(): Env {
     }
     return makeNumber(x.list.length);
   });
+  builtin("read-string", (...args: Ty[]): Ty => {
+    const x = args[0];
+    switch (x.kind) {
+      case Kind.String: {
+        return parse(x.val) ?? kNil;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'read-string' expected string.`,
+        );
+      }
+    }
+  });
   return env;
 }
 
