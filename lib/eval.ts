@@ -12,130 +12,134 @@ import {
 } from "./types_utils.ts";
 
 export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
-  if (!ast) {
-    return kNil;
-  }
-
-  switch (ast.kind) {
-    case Kind.List: {
-      if (ast.list.length === 0) {
-        return ast;
-      } else {
-        const sp = specialForm(ast, envChain);
-        return sp ?? apply(ast, envChain);
-      }
+  // tail call optimization
+  tco:
+  while (true) {
+    if (!ast) {
+      return kNil;
     }
-    default: {
+    if (ast.kind !== Kind.List) {
       return evalExpr(ast, envChain);
     }
-  }
-}
-
-function specialForm(ast: TyList, envChain: EnvChain): Ty | undefined {
-  const first = ast.list[0];
-  if (first.kind !== Kind.Symbol) {
-    return;
-  }
-
-  switch (first.name) {
-    case "def!": { // (def! x y)
-      const [, sym, val] = ast.list;
-      if (sym.kind !== Kind.Symbol) {
-        throw new Error(
-          `unexpected expr type: ${sym.kind}, 'def!' expected symbol.`,
-        );
-      }
-      return storeKeyVal(sym, evalAst(val, envChain), envChain);
+    if (ast.list.length === 0) {
+      return ast;
     }
-    case "let*": { // (let* (key val ...) ret)
-      const letEnvChain = [makeEnv(), ...envChain]; // 既存の（外側の）環境は破壊的変更をしないようにする。
-      const pairs = ast.list[1];
-      switch (pairs.kind) {
-        case Kind.List:
-        case Kind.Vector: {
-          const list = pairs.list;
-          for (let i = 0; i < list.length; i += 2) {
-            const key = list[i];
-            const val = list[i + 1];
-            if (key.kind !== Kind.Symbol) {
+    const first = ast.list[0];
+
+    switch (first.kind) {
+      case Kind.Symbol: { // special forms
+        switch (first.name) {
+          case "def!": { // (def! x y)
+            const [, sym, val] = ast.list;
+            if (sym.kind !== Kind.Symbol) {
               throw new Error(
-                `unexpected expr type: ${key.kind}, expected symbol.`,
+                `unexpected expr type: ${sym.kind}, 'def!' expected symbol.`,
               );
             }
-            storeKeyVal(key, evalAst(val, letEnvChain), letEnvChain);
+            return storeKeyVal(sym, evalAst(val, envChain), envChain);
           }
-          return evalAst(ast.list[2], letEnvChain);
-        }
-        default: {
-          throw new Error(
-            `unexpected expr type: ${pairs.kind}, 'let*' expected list or vector.`,
-          );
-        }
+          case "let*": { // (let* (key val ...) ret)
+            const letEnvChain = [makeEnv(), ...envChain]; // 既存の（外側の）環境は破壊的変更をしないようにする。
+            const pairs = ast.list[1];
+            switch (pairs.kind) {
+              case Kind.List:
+              case Kind.Vector: {
+                const list = pairs.list;
+                for (let i = 0; i < list.length; i += 2) {
+                  const key = list[i];
+                  const val = list[i + 1];
+                  if (key.kind !== Kind.Symbol) {
+                    throw new Error(
+                      `unexpected expr type: ${key.kind}, expected symbol.`,
+                    );
+                  }
+                  storeKeyVal(key, evalAst(val, letEnvChain), letEnvChain);
+                }
+                ast = ast.list[2];
+                envChain = letEnvChain;
+                continue tco;
+              }
+              default: {
+                throw new Error(
+                  `unexpected expr type: ${pairs.kind}, 'let*' expected list or vector.`,
+                );
+              }
+            }
+            break;
+          }
+          case "if": {
+            const [, cond, conseq, alt] = ast.list;
+            const res = evalAst(cond, envChain);
+            if (tyToBool(res)) {
+              ast = conseq;
+              continue tco;
+            } else {
+              ast = alt;
+              continue tco;
+            }
+          }
+          case "fn*": {
+            const [, args, body] = ast.list;
+            if (args.kind !== Kind.List && args.kind !== Kind.Vector) {
+              throw new Error(
+                `unexpected expr type ${args.kind}, 'fn*' args expected list or vector.`,
+              );
+            }
+            const symbols = args.list.map((param) => {
+              if (param.kind !== Kind.Symbol) {
+                throw new Error(
+                  `unexpected expr type: ${param.kind}, 'fn*' expected symbol.`,
+                );
+              }
+              return param;
+            });
+            return makeFunc(symbols, body, envChain);
+          }
+          case "do": {
+            const [, ...body] = ast.list;
+            ast = body.map((x) => {
+              return evalAst(x, envChain);
+            }).slice(-1)[0]; // 最後の式を返り値とする。
+            continue tco;
+          }
+          default: {
+            break;
+          }
+        } // switch (first.name)
       }
-      return;
-    }
-    case "if": {
-      const [, cond, conseq, alt] = ast.list;
-      const res = evalAst(cond, envChain);
-      if (tyToBool(res)) {
-        return evalAst(conseq, envChain);
-      } else {
-        return evalAst(alt, envChain);
+    } // switch (first.kind)
+
+    // apply
+    const result = evalExpr(ast, envChain);
+    switch (result.kind) {
+      case Kind.List:
+      case Kind.Vector: {
+        const [f, ...args] = result.list;
+        switch (f.kind) {
+          case Kind.BuiltinFn: {
+            return f.fn(...args);
+          }
+          case Kind.Func: {
+            bindArgs(f, args);
+            ast = f.body;
+            envChain = f.closure;
+            continue tco;
+          }
+          default: {
+            throw new Error(
+              `unexpected expr type: ${f.kind}, expected: builtin-fn or function`,
+            );
+          }
+        }
+        break;
       }
-    }
-    case "fn*": {
-      const [, args, body] = ast.list;
-      if (args.kind !== Kind.List && args.kind !== Kind.Vector) {
+      default: {
         throw new Error(
-          `unexpected expr type ${args.kind}, 'fn*' args expected list or vector.`,
+          `unexpected expr type: ${result.kind}, apply expected: list or vector.`,
         );
       }
-      const symbols = args.list.map((param) => {
-        if (param.kind !== Kind.Symbol) {
-          throw new Error(
-            `unexpected expr type: ${param.kind}, 'fn*' expected symbol.`,
-          );
-        }
-        return param;
-      });
-      return makeFunc(symbols, body, envChain);
-    }
-    case "do": {
-      const [, ...body] = ast.list;
-      return body.map((x) => {
-        return evalAst(x, envChain);
-      }).slice(-1)[0]; // 最後の式を返り値とする。
-    }
-  }
-}
-
-function apply(ls: TyList, envChain: EnvChain): Ty {
-  const result = evalExpr(ls, envChain);
-  switch (result.kind) {
-    case Kind.List:
-    case Kind.Vector: {
-      const [f, ...args] = result.list;
-      switch (f.kind) {
-        case Kind.BuiltinFn: {
-          return f.fn(...args);
-        }
-        case Kind.Func: {
-          bindArgs(f, args);
-          return evalAst(f.body, f.closure);
-        }
-        default: {
-          throw new Error(
-            `unexpected expr type: ${f.kind}, expected: builtin-fn or function`,
-          );
-        }
-      }
-    }
-    default: {
-      throw new Error(
-        `unexpected expr type: ${result.kind}, expected: list or vector.`,
-      );
-    }
-  }
+    } // switch (result.kind)
+  } // while (true)
 }
 
 function evalExpr(expr: Ty, envChain: EnvChain): Ty {

@@ -11,7 +11,6 @@ import {
   TyBuiltinFn,
   TyFunc,
   TyHashMap,
-  TyKey,
   TyKeyword,
   TyList,
   TyNumber,
