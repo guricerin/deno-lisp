@@ -136,6 +136,11 @@ Deno.test("1-way if form: (if nil 8 7)", () => {
   assertEquals(evalHelper("(if nil 8 7)", env), "7");
 });
 
+Deno.test("1-way if form: (if true (+ 1 7))", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(if true (+ 1 7))", env), "8");
+});
+
 Deno.test("basic conditionals: (= 2 1)", () => {
   const env = makeEnvChain();
   assertEquals(evalHelper("(= 2 1)", env), "false");
@@ -301,11 +306,6 @@ Deno.test("equality: (= (list nil) (list))", () => {
   assertEquals(evalHelper("(= (list nil) (list))", env), "false");
 });
 
-Deno.test("1-way if form: (if true (+ 1 7))", () => {
-  const env = makeEnvChain();
-  assertEquals(evalHelper("(if true (+ 1 7))", env), "8");
-});
-
 Deno.test("builtin and user defined functions: (+ 1 2)", () => {
   const env = makeEnvChain();
   assertEquals(evalHelper("(+ 1 2)", env), "3");
@@ -327,4 +327,28 @@ Deno.test("builtin and user defined functions: ( (fn* (f x) (f x)) (fn* (a) (+ 1
     evalHelper("( (fn* (f x) (f x)) (fn* (a) (+ 1 a)) 7)", env),
     "8",
   );
+});
+
+Deno.test("closures: ( ( (fn* (a) (fn* (b) (+ a b))) 5) 7)", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("( ( (fn* (a) (fn* (b) (+ a b))) 5) 7)", env), "12");
+});
+
+Deno.test("closures: plus5", () => {
+  const env = makeEnvChain();
+  evalHelper("(def! gen-plus5 (fn* () (fn* (b) (+ 5 b))))", env);
+  evalHelper("(def! plus5 (gen-plus5))", env);
+  assertEquals(evalHelper("(plus5 7)", env), "12");
+});
+
+Deno.test("closures: plusX", () => {
+  const env = makeEnvChain();
+  evalHelper("(def! gen-plusX (fn* (x) (fn* (b) (+ x b))))", env);
+  evalHelper("(def! plus7 (gen-plusX 7))", env);
+  assertEquals(evalHelper("(plus7 8)", env), "15");
+});
+
+Deno.test("do form: ", () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("", env), "");
 });
