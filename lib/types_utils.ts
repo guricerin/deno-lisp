@@ -67,9 +67,6 @@ export function tyToBool(ty: Ty): boolean {
     case Kind.Nil: {
       return false;
     }
-    case Kind.Number: {
-      return ty.val !== 0;
-    }
     default: {
       return true;
     }

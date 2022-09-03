@@ -2,14 +2,14 @@ import {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.153.0/testing/asserts.ts";
-import { makeBuiltinEnv } from "../lib/core.ts";
+import { initEnvChain } from "../lib/core.ts";
 import { evalAst } from "../lib/eval.ts";
 import { parse } from "../lib/reader.ts";
 import { EnvChain } from "../lib/types.ts";
 import { tyToString } from "../lib/types_utils.ts";
 
 function makeEnvChain() {
-  return [makeBuiltinEnv()];
+  return initEnvChain();
 }
 
 function evalHelper(code: string, envChain: EnvChain): string {
@@ -103,7 +103,7 @@ Deno.test("if form: (if nil 7 8)", () => {
 
 Deno.test("if form: (if 0 7 8)", () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper("(if 0 7 8)", env), "8");
+  assertEquals(evalHelper("(if 0 7 8)", env), "7");
 });
 
 Deno.test("if form: (if (list) 7 8)", () => {
@@ -494,4 +494,29 @@ Deno.test(`variable length arguments: ( (fn* (a & more) (count more)) 1)`, () =>
 Deno.test(`variable length arguments: ( (fn* (a & more) (list? more)) 1)`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(`( (fn* (a & more) (list? more)) 1)`, env), "true");
+});
+
+Deno.test(`language defined not function: (not false)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(not false)`, env), "true");
+});
+
+Deno.test(`language defined not function: (not nil)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(not nil)`, env), "true");
+});
+
+Deno.test(`language defined not function: (not true)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(not true)`, env), "false");
+});
+
+Deno.test(`language defined not function: (not "a")`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(not "a")`, env), "false");
+});
+
+Deno.test(`language defined not function: (not 0)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(not 0)`, env), "false");
 });

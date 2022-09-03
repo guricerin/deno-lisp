@@ -1,4 +1,4 @@
-import { Env, Kind, kNil, Ty } from "./types.ts";
+import { Env, EnvChain, Kind, kNil, Ty } from "./types.ts";
 import {
   equal,
   makeBool,
@@ -6,11 +6,21 @@ import {
   makeEnv,
   makeList,
   makeNumber,
-  tyToBool,
   tyToString,
 } from "./types_utils.ts";
+import { parse } from "./reader.ts";
+import { evalAst } from "./eval.ts";
 
-export function makeBuiltinEnv(): Env {
+export function initEnvChain(): EnvChain {
+  const res = [makeBuiltinEnv()];
+  const helper = ((code: string) => {
+    evalAst(parse(code), res);
+  });
+  helper("(def! not (fn* (a) (if a false true)))");
+  return res;
+}
+
+function makeBuiltinEnv(): Env {
   const env = makeEnv();
 
   env.set("+", makeBuiltinFunc(arith((x, y) => x + y)));

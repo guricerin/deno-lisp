@@ -39,13 +39,13 @@ function specialForm(ast: TyList, envChain: EnvChain): Ty | undefined {
 
   switch (first.name) {
     case "def!": { // (def! x y)
-      const [, key, val] = ast.list;
-      if (key.kind !== Kind.Symbol) {
+      const [, sym, val] = ast.list;
+      if (sym.kind !== Kind.Symbol) {
         throw new Error(
-          `unexpected expr type: ${key.kind}, 'def!' expected symbol.`,
+          `unexpected expr type: ${sym.kind}, 'def!' expected symbol.`,
         );
       }
-      return storeKeyVal(key, evalAst(val, envChain), envChain);
+      return storeKeyVal(sym, evalAst(val, envChain), envChain);
     }
     case "let*": { // (let* (key val ...) ret)
       const letEnvChain = [makeEnv(), ...envChain]; // 既存の（外側の）環境は破壊的変更をしないようにする。

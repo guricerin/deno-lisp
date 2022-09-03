@@ -2,12 +2,12 @@ import {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.153.0/testing/asserts.ts";
-import { makeBuiltinEnv } from "../lib/core.ts";
+import { initEnvChain } from "../lib/core.ts";
 import { evalAst } from "../lib/eval.ts";
 import { parse } from "../lib/reader.ts";
 import { tyToString } from "../lib/types_utils.ts";
 
-const envChain = [makeBuiltinEnv()];
+const envChain = initEnvChain();
 
 function evalHelper(code: string): string {
   const ast = parse(code);
