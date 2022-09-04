@@ -90,11 +90,19 @@ function makeBuiltinEnv(): Env {
     }
     return makeList([x].concat(y.list));
   });
-  // builtin("concat", (...args: Ty[]): Ty => {
-  //   args.reduce((acc, a) => {
-
-  //   })
-  // });
+  builtin("concat", (...args: Ty[]): Ty => {
+    const ls = args
+      .map((l) => {
+        if (l.kind !== Kind.List && l.kind !== Kind.Vector) {
+          throw new Error(
+            `unexpected expr type: ${l.kind}, 'concat' expected list or vector.`,
+          );
+        }
+        return l.list;
+      })
+      .reduce((acc, l) => acc.concat(l), []);
+    return makeList(ls);
+  });
   builtin("empty?", (...args: Ty[]): Ty => {
     const [x] = args;
     if (equal(x, kNil)) {

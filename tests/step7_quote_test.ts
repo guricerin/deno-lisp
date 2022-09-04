@@ -45,7 +45,54 @@ Deno.test(`cons function: (def! a (list 2 3))`, () => {
   assertEquals(evalHelper(`a`, env), `(2 3)`);
 });
 
-Deno.test(`cons function: `, () => {
+Deno.test(`concat function: (concat)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(concat)`, env), `()`);
+});
+
+Deno.test(`concat function: (concat (list 1 2))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(concat (list 1 2))`, env), `(1 2)`);
+});
+
+Deno.test(`concat function: (concat (list 1 2) (list 3 4))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(concat (list 1 2) (list 3 4))`, env), `(1 2 3 4)`);
+});
+
+Deno.test(`concat function: (concat (list 1 2) (list 3 4) (list 5 6))`, () => {
+  const env = makeEnvChain();
+  assertEquals(
+    evalHelper(`(concat (list 1 2) (list 3 4) (list 5 6))`, env),
+    `(1 2 3 4 5 6)`,
+  );
+});
+
+Deno.test(`concat function: (concat (concat))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(concat (concat))`, env), `()`);
+});
+
+Deno.test(`concat function: (concat (list) (list))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(concat (list) (list))`, env), `()`);
+});
+
+Deno.test(`concat function: (= () (concat))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(= () (concat))`, env), `true`);
+});
+
+Deno.test(`concat function: (concat a b (list 5 6))`, () => {
+  const env = makeEnvChain();
+  evalHelper(`(def! a (list 1 2))`, env);
+  evalHelper(`(def! b (list 3 4))`, env);
+  assertEquals(evalHelper(`(concat a b (list 5 6))`, env), `(1 2 3 4 5 6)`);
+  assertEquals(evalHelper(`a`, env), `(1 2)`);
+  assertEquals(evalHelper(`b`, env), `(3 4)`);
+});
+
+Deno.test(`regular quote: `, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });
