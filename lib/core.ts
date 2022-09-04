@@ -44,8 +44,7 @@ function makeBuiltinEnv(): Env {
   };
 
   builtin("=", (...args: Ty[]): Ty => {
-    const x = args[0];
-    const y = args[1];
+    const [x, y] = args;
     return makeBool(equal(x, y));
   });
   builtin("pr-str", (...args: Ty[]): Ty => {
@@ -78,11 +77,11 @@ function makeBuiltinEnv(): Env {
     return makeList(args);
   });
   builtin("list?", (...args: Ty[]): Ty => {
-    const x = args[0];
+    const [x] = args;
     return makeBool(x.kind === Kind.List);
   });
   builtin("empty?", (...args: Ty[]): Ty => {
-    const x = args[0];
+    const [x] = args;
     if (equal(x, kNil)) {
       return makeBool(true);
     } else if (x.kind !== Kind.List && x.kind !== Kind.Vector) {
@@ -92,7 +91,7 @@ function makeBuiltinEnv(): Env {
     } else return makeBool(x.list.length === 0);
   });
   builtin("count", (...args: Ty[]): Ty => {
-    const x = args[0];
+    const [x] = args;
     if (equal(x, kNil)) {
       return makeNumber(0);
     }
@@ -104,7 +103,7 @@ function makeBuiltinEnv(): Env {
     return makeNumber(x.list.length);
   });
   builtin("read-string", (...args: Ty[]): Ty => {
-    const x = args[0];
+    const [x] = args;
     switch (x.kind) {
       case Kind.String: {
         return parse(x.val) ?? kNil;
@@ -117,11 +116,11 @@ function makeBuiltinEnv(): Env {
     }
   });
   builtin("eval", (...args: Ty[]): Ty => {
-    const x = args[0];
+    const [x] = args;
     return evalAst(x, [env]);
   });
   builtin("slurp", (...args: Ty[]): Ty => {
-    const x = args[0];
+    const [x] = args;
     switch (x.kind) {
       case Kind.String: {
         const text = Deno.readTextFileSync(x.val);
@@ -135,15 +134,15 @@ function makeBuiltinEnv(): Env {
     }
   });
   builtin("atom", (...args: Ty[]): Ty => {
-    const a = args[0];
+    const [a] = args;
     return makeAtom(a);
   });
   builtin("atom?", (...args: Ty[]): Ty => {
-    const a = args[0];
+    const [a] = args;
     return makeBool(a.kind === Kind.Atom);
   });
   builtin("deref", (...args: Ty[]): Ty => {
-    const a = args[0];
+    const [a] = args;
     switch (a.kind) {
       case Kind.Atom: {
         return a.ref;
@@ -201,8 +200,7 @@ function makeBuiltinEnv(): Env {
 
 const arith = (op: (x: number, y: number) => number) => {
   const res = (...args: Ty[]): Ty => {
-    const x = args[0];
-    const y = args[1];
+    const [x, y] = args;
     if (x.kind !== Kind.Number || y.kind !== Kind.Number) {
       throw new Error(
         `unexpected expr type: lhs ${x.kind}, rhs ${y.kind}, arith op expected both numbers.`,
@@ -215,8 +213,7 @@ const arith = (op: (x: number, y: number) => number) => {
 
 const comparison = (op: (x: number, y: number) => boolean) => {
   const res = (...args: Ty[]): Ty => {
-    const x = args[0];
-    const y = args[1];
+    const [x, y] = args;
     if (x.kind !== Kind.Number || y.kind !== Kind.Number) {
       throw new Error(
         `unexpected expr type: lhs ${x.kind}, rhs ${y.kind}, comparison op expected both numbers.`,
