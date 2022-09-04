@@ -1,6 +1,7 @@
 import { Env, EnvChain, Kind, kNil, Ty } from "./types.ts";
 import {
   equal,
+  makeAtom,
   makeBool,
   makeBuiltinFunc,
   makeEnv,
@@ -128,6 +129,27 @@ function makeBuiltinEnv(): Env {
       default: {
         throw new Error(
           `unexpected expr type: ${x.kind}, 'slurp' expected string.`,
+        );
+      }
+    }
+  });
+  builtin("atom", (...args: Ty[]): Ty => {
+    const x = args[0];
+    return makeAtom(x);
+  });
+  builtin("atom?", (...args: Ty[]): Ty => {
+    const x = args[0];
+    return makeBool(x.kind === Kind.Atom);
+  });
+  builtin("deref", (...args: Ty[]): Ty => {
+    const x = args[0];
+    switch (x.kind) {
+      case Kind.Atom: {
+        return x.ref;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'deref' expected atom.`,
         );
       }
     }

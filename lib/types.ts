@@ -9,7 +9,8 @@ export type Ty =
   | TyVector
   | TyHashMap
   | TyBuiltinFn
-  | TyFunc;
+  | TyFunc
+  | TyAtom;
 
 export const enum Kind {
   List = "list",
@@ -102,6 +103,9 @@ export interface TyBuiltinFn {
   fn: Fn;
 }
 
+/**
+ * ユーザ定義の関数
+ */
 export interface TyFunc {
   kind: Kind.Func;
   /**
@@ -110,4 +114,12 @@ export interface TyFunc {
   params: TySymbol[];
   body: Ty;
   closure: EnvChain;
+}
+
+/**
+ * pointer to value (inspired by Clojure)
+ */
+export interface TyAtom {
+  kind: Kind.Atom;
+  ref: Ty;
 }

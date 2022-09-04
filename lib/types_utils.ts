@@ -7,6 +7,7 @@ import {
   kNil,
   kTrue,
   Ty,
+  TyAtom,
   TyBool,
   TyBuiltinFn,
   TyFunc,
@@ -193,6 +194,13 @@ export function bindArgs(fn: TyFunc, args: Ty[]) {
   fn.closure = [innerEnv, ...fn.closure];
 }
 
+export function makeAtom(x: Ty): TyAtom {
+  return {
+    kind: Kind.Atom,
+    ref: x,
+  };
+}
+
 export function equal(x: Ty, y: Ty): boolean {
   if (x.kind === Kind.Nil && y.kind === Kind.Nil) {
     return true;
@@ -288,6 +296,9 @@ export function tyToString(ty: Ty, readably: boolean): string {
     }
     case Kind.Func: {
       return "#<function>";
+    }
+    case Kind.Atom: {
+      return `(atom ${tyToString(ty.ref, readably)})`;
     }
     default: {
       const _exhaustiveCheck: never = ty;

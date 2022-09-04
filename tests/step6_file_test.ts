@@ -83,6 +83,15 @@ Deno.test(`load-file`, () => {
   assertEquals(evalHelper(`(inc3 9)`, env), "12");
 });
 
+Deno.test(`atoms`, () => {
+  const env = makeEnvChain();
+  evalHelper(`(def! inc3 (fn* (a) (+ 3 a)))`, env);
+  assertEquals(evalHelper(`(def! a (atom 2))`, env), "(atom 2)");
+  assertEquals(evalHelper(`(atom? a)`, env), "true");
+  assertEquals(evalHelper(`(atom? 1)`, env), "false");
+  assertEquals(evalHelper(`(deref a)`, env), "2");
+});
+
 Deno.test(`eval sets aa in root scope, and that it is found in nested scope`, () => {
   const env = makeEnvChain();
   assertEquals(
