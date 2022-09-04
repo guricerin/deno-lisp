@@ -10,7 +10,6 @@ import {
   resolveSymbol,
   storeKeyVal,
   tyToBool,
-  tyToString,
 } from "./types_utils.ts";
 
 export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {

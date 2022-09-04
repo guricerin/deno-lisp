@@ -177,6 +177,56 @@ Deno.test(`quasiquote with lists: `, () => {
   assertEquals(evalHelper(``, env), ``);
 });
 
+Deno.test(`unquote: (quasiquote (unquote 7))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote (unquote 7))`, env), `7`);
+});
+
+Deno.test(`unquote: `, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`unquote: `, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`unquote: `, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`unquote: `, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`unquote: `, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`unquote: `, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`unquote: `, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`unquote: `, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`unquote: `, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
 Deno.test(`unquote: `, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
