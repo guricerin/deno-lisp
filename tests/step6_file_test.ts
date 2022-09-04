@@ -118,6 +118,30 @@ Deno.test(`whether closures can retain atoms`, () => {
   assertEquals(evalHelper(`(g)`, env), "0");
 });
 
+Deno.test(`reading of large files`, () => {
+  const env = makeEnvChain();
+  assertEquals(
+    evalHelper(`(load-file "./tests/mal/computations.mal")`, env),
+    "nil",
+  );
+  assertEquals(evalHelper(`(sumdown 2)`, env), "3");
+  assertEquals(evalHelper(`(fib 2)`, env), "1");
+});
+
+Deno.test(`'@' reader macro (short for 'deref')`, () => {
+  const env = makeEnvChain();
+  evalHelper(`(def! atm (atom 9))`, env);
+  assertEquals(evalHelper(`@atm`, env), "9");
+});
+
+Deno.test(`vector params not broken by TCO`, () => {
+  const env = makeEnvChain();
+  evalHelper(`(def! g (fn* [] 78))`, env);
+  assertEquals(evalHelper(`(g)`, env), "78");
+  evalHelper(`(def! g (fn* [a] (+ a 78)))`, env);
+  assertEquals(evalHelper(`(g 3)`, env), "81");
+});
+
 Deno.test(`eval sets aa in root scope, and that it is found in nested scope`, () => {
   const env = makeEnvChain();
   assertEquals(
