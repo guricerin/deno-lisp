@@ -111,6 +111,13 @@ Deno.test(`swap!/closure interaction`, () => {
   assertEquals(evalHelper(`(f)`, env), "10");
 });
 
+Deno.test(`whether closures can retain atoms`, () => {
+  const env = makeEnvChain();
+  evalHelper(`(def! g (let* (atm (atom 0)) (fn* () (deref atm))))`, env);
+  evalHelper(`(def! atm (atom 1))`, env);
+  assertEquals(evalHelper(`(g)`, env), "0");
+});
+
 Deno.test(`eval sets aa in root scope, and that it is found in nested scope`, () => {
   const env = makeEnvChain();
   assertEquals(
