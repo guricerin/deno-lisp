@@ -210,6 +210,28 @@ Deno.test(`Quasiquote and environments`, () => {
   assertEquals(evalHelper(`(let* (x 0) (quasiquote (unquote x)))`, env), `0`);
 });
 
+Deno.test(`splice-unquote`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(def! c (quote (1 "b" "d")))`, env), `(1 "b" "d")`);
+  assertEquals(evalHelper(`(quasiquote (1 c 3))`, env), `(1 c 3)`);
+  assertEquals(
+    evalHelper(`(quasiquote (1 (splice-unquote c) 3))`, env),
+    `(1 1 "b" "d" 3)`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquote (1 (splice-unquote c)))`, env),
+    `(1 1 "b" "d")`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquote ((splice-unquote c) 2))`, env),
+    `(1 "b" "d" 2)`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquote ((splice-unquote c) (splice-unquote c)))`, env),
+    `(1 "b" "d" 1 "b" "d")`,
+  );
+});
+
 Deno.test(`unquote: `, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
