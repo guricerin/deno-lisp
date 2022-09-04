@@ -1,5 +1,6 @@
 import { Env, EnvChain, Kind, kNil, Ty } from "./types.ts";
 import {
+  bindArgs,
   equal,
   makeAtom,
   makeBool,
@@ -134,37 +135,63 @@ function makeBuiltinEnv(): Env {
     }
   });
   builtin("atom", (...args: Ty[]): Ty => {
-    const x = args[0];
-    return makeAtom(x);
+    const a = args[0];
+    return makeAtom(a);
   });
   builtin("atom?", (...args: Ty[]): Ty => {
-    const x = args[0];
-    return makeBool(x.kind === Kind.Atom);
+    const a = args[0];
+    return makeBool(a.kind === Kind.Atom);
   });
   builtin("deref", (...args: Ty[]): Ty => {
-    const x = args[0];
-    switch (x.kind) {
+    const a = args[0];
+    switch (a.kind) {
       case Kind.Atom: {
-        return x.ref;
+        return a.ref;
       }
       default: {
         throw new Error(
-          `unexpected expr type: ${x.kind}, 'deref' expected atom.`,
+          `unexpected expr type: ${a.kind}, 'deref' expected atom.`,
         );
       }
     }
   });
   builtin("reset!", (...args: Ty[]): Ty => {
-    const x = args[0];
-    const y = args[1];
-    switch (x.kind) {
+    const [a, ref] = args;
+    switch (a.kind) {
       case Kind.Atom: {
-        x.ref = y;
-        return y;
+        a.ref = ref;
+        return ref;
       }
       default: {
         throw new Error(
-          `unexpected expr type: ${x.kind}, 'reset!' expected atom.`,
+          `unexpected expr type: ${a.kind}, 'reset!' expected atom.`,
+        );
+      }
+    }
+  });
+  builtin("swap!", (...args: Ty[]): Ty => {
+    const [a, f, ...vars] = args;
+    if (a.kind !== Kind.Atom) {
+      throw new Error(
+        `unexpected expr type: ${a.kind}, 'swap!' expected atom as 1st arg.`,
+      );
+    }
+
+    switch (f.kind) {
+      case Kind.Func: {
+        // apply
+        bindArgs(f, [a.ref, ...vars]);
+        a.ref = evalAst(f.body, f.closure);
+        return a.ref;
+      }
+      case Kind.BuiltinFn: {
+        // apply
+        a.ref = f.fn(...[a.ref, ...vars]);
+        return a.ref;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${f.kind}, 'swap!' expected atom as 2nd arg.`,
         );
       }
     }

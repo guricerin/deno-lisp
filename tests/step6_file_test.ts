@@ -92,6 +92,23 @@ Deno.test(`atoms`, () => {
   assertEquals(evalHelper(`(deref a)`, env), "2");
   assertEquals(evalHelper(`(reset! a 3)`, env), "3");
   assertEquals(evalHelper(`(deref a)`, env), "3");
+
+  assertEquals(evalHelper(`(swap! a inc3)`, env), "6");
+  assertEquals(evalHelper(`(deref a)`, env), "6");
+  assertEquals(evalHelper(`(swap! a (fn* (a) a))`, env), "6");
+  assertEquals(evalHelper(`(swap! a (fn* (a) (* 2 a)))`, env), "12");
+  assertEquals(evalHelper(`(swap! a (fn* (a b) (* a b)) 10)`, env), "120");
+  assertEquals(evalHelper(`(swap! a + 3)`, env), "123");
+});
+
+Deno.test(`swap!/closure interaction`, () => {
+  const env = makeEnvChain();
+  evalHelper(`(def! inc-it (fn* (a) (+ 1 a)))`, env);
+  evalHelper(`(def! atm (atom 7))`, env);
+  evalHelper(`(def! f (fn* () (swap! atm inc-it)))`, env);
+  assertEquals(evalHelper(`(f)`, env), "8");
+  assertEquals(evalHelper(`(f)`, env), "9");
+  assertEquals(evalHelper(`(f)`, env), "10");
 });
 
 Deno.test(`eval sets aa in root scope, and that it is found in nested scope`, () => {
