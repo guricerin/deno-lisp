@@ -23,6 +23,7 @@ export function initEnvChain(): EnvChain {
   defInMal(
     '(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))',
   );
+  defInMal("(def! *ARGV* (list))");
   return res;
 }
 

@@ -142,6 +142,12 @@ Deno.test(`vector params not broken by TCO`, () => {
   assertEquals(evalHelper(`(g 3)`, env), "81");
 });
 
+Deno.test(`*ARGV* exists and is an empty list`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(list? *ARGV*)`, env), "true");
+  assertEquals(evalHelper(`*ARGV*`, env), "()");
+});
+
 Deno.test(`eval sets aa in root scope, and that it is found in nested scope`, () => {
   const env = makeEnvChain();
   assertEquals(

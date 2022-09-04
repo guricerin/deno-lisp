@@ -1,6 +1,12 @@
 import { stdio } from "./deps.ts";
-import { EnvChain, Ty } from "./lib/types.ts";
-import { tyToString } from "./lib/types_utils.ts";
+import { EnvChain, Ty, TySymbol } from "./lib/types.ts";
+import {
+  makeList,
+  makeString,
+  makeSymbol,
+  storeKeyVal,
+  tyToString,
+} from "./lib/types_utils.ts";
 import { initEnvChain } from "./lib/core.ts";
 import { parse } from "./lib/reader.ts";
 import { evalAst } from "./lib/eval.ts";
@@ -31,12 +37,29 @@ function rep(s: string, envChain: EnvChain) {
 
 (async () => {
   const envChain: EnvChain = initEnvChain();
-  for await (const line of stdio.readLines(Deno.stdin)) {
+  const [filePath, ...args] = Deno.args;
+
+  if (filePath) {
     try {
-      rep(line, envChain);
+      const code = `(load-file "${filePath}")`;
+      storeKeyVal(
+        makeSymbol("*ARGV*") as TySymbol,
+        makeList(args.map((x) => makeString(x))),
+        envChain,
+      );
+      evalLisp(read(code), envChain);
     } catch (e) {
       const err = e as Error;
       console.error(err.message);
+    }
+  } else {
+    for await (const line of stdio.readLines(Deno.stdin)) {
+      try {
+        rep(line, envChain);
+      } catch (e) {
+        const err = e as Error;
+        console.error(err.message);
+      }
     }
   }
 })();
