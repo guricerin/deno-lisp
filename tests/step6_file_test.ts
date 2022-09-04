@@ -83,8 +83,53 @@ Deno.test(`load-file`, () => {
   assertEquals(evalHelper(`(inc3 9)`, env), "12");
 });
 
+Deno.test(`eval sets aa in root scope, and that it is found in nested scope`, () => {
+  const env = makeEnvChain();
+  assertEquals(
+    evalHelper(
+      `(let* (b 12) (do (eval (read-string "(def! aa 7)")) aa ))`,
+      env,
+    ),
+    "7",
+  );
+});
+
+Deno.test(`comments in a file`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(load-file "./tests/mal/incB.mal")`, env), "nil");
+  assertEquals(evalHelper(`(inc4 7)`, env), "11");
+  assertEquals(evalHelper(`(inc5 7)`, env), "12");
+});
+
+Deno.test(`map literal across multiple lines in a file`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(load-file "./tests/mal/incC.mal")`, env), "nil");
+  assertEquals(evalHelper(`mymap`, env), `{"a" 1}`);
+});
+
 Deno.test(`Checking that eval does not use local environments.`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(`(def! a 1)`, env), "1");
   assertEquals(evalHelper(`(let* (a 2) (eval (read-string "a")))`, env), "1");
+});
+
+Deno.test(`Non alphanumeric characters in comments in read-string`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(read-string "1;!")`, env), "1");
+  assertEquals(evalHelper(String.raw`(read-string "1;\"")`, env), "1");
+  assertEquals(evalHelper(`(read-string "1;#")`, env), "1");
+  assertEquals(evalHelper(`(read-string "1;$")`, env), "1");
+  assertEquals(evalHelper(`(read-string "1;%")`, env), "1");
+  assertEquals(evalHelper(`(read-string "1;'")`, env), "1");
+  assertEquals(evalHelper(String.raw`(read-string "1;\\")`, env), "1");
+  assertEquals(evalHelper(String.raw`(read-string "1;\\\\")`, env), "1");
+  assertEquals(evalHelper(String.raw`(read-string "1;\\\\\\")`, env), "1");
+  assertEquals(evalHelper('(read-string "1;`")', env), "1");
+  assertEquals(evalHelper(`(read-string "1;!")`, env), "1");
+});
+
+Deno.test(`Hopefully less problematic characters can be checked together`, () => {
+  const env = makeEnvChain();
+  const t = String.raw`(read-string "1; &()*+,-./:;<=>?@[]^_{|}~")`;
+  assertEquals(evalHelper(t, env), "1");
 });
