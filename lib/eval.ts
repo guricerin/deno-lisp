@@ -1,4 +1,4 @@
-import { EnvChain, Kind, kNil, Ty, TyList } from "./types.ts";
+import { EnvChain, Kind, kNil, Ty } from "./types.ts";
 import {
   bindArgs,
   makeEnv,

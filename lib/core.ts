@@ -1,6 +1,8 @@
 import { Env, EnvChain, Kind, kNil, Ty } from "./types.ts";
 import {
+  bindArgs,
   equal,
+  makeAtom,
   makeBool,
   makeBuiltinFunc,
   makeEnv,
@@ -14,10 +16,14 @@ import { evalAst } from "./eval.ts";
 
 export function initEnvChain(): EnvChain {
   const res = [makeBuiltinEnv()];
-  const helper = ((code: string) => {
+  const defInMal = ((code: string) => {
     evalAst(parse(code), res);
   });
-  helper("(def! not (fn* (a) (if a false true)))");
+  defInMal("(def! not (fn* (a) (if a false true)))");
+  defInMal(
+    '(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))',
+  );
+  defInMal("(def! *ARGV* (list))");
   return res;
 }
 
@@ -39,8 +45,7 @@ function makeBuiltinEnv(): Env {
   };
 
   builtin("=", (...args: Ty[]): Ty => {
-    const x = args[0];
-    const y = args[1];
+    const [x, y] = args;
     return makeBool(equal(x, y));
   });
   builtin("pr-str", (...args: Ty[]): Ty => {
@@ -73,11 +78,11 @@ function makeBuiltinEnv(): Env {
     return makeList(args);
   });
   builtin("list?", (...args: Ty[]): Ty => {
-    const x = args[0];
+    const [x] = args;
     return makeBool(x.kind === Kind.List);
   });
   builtin("empty?", (...args: Ty[]): Ty => {
-    const x = args[0];
+    const [x] = args;
     if (equal(x, kNil)) {
       return makeBool(true);
     } else if (x.kind !== Kind.List && x.kind !== Kind.Vector) {
@@ -87,7 +92,7 @@ function makeBuiltinEnv(): Env {
     } else return makeBool(x.list.length === 0);
   });
   builtin("count", (...args: Ty[]): Ty => {
-    const x = args[0];
+    const [x] = args;
     if (equal(x, kNil)) {
       return makeNumber(0);
     }
@@ -98,13 +103,106 @@ function makeBuiltinEnv(): Env {
     }
     return makeNumber(x.list.length);
   });
+  builtin("read-string", (...args: Ty[]): Ty => {
+    const [x] = args;
+    switch (x.kind) {
+      case Kind.String: {
+        return parse(x.val) ?? kNil;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'read-string' expected string.`,
+        );
+      }
+    }
+  });
+  builtin("eval", (...args: Ty[]): Ty => {
+    const [x] = args;
+    return evalAst(x, [env]);
+  });
+  builtin("slurp", (...args: Ty[]): Ty => {
+    const [x] = args;
+    switch (x.kind) {
+      case Kind.String: {
+        const text = Deno.readTextFileSync(x.val);
+        return makeString(text);
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'slurp' expected string.`,
+        );
+      }
+    }
+  });
+  builtin("atom", (...args: Ty[]): Ty => {
+    const [a] = args;
+    return makeAtom(a);
+  });
+  builtin("atom?", (...args: Ty[]): Ty => {
+    const [a] = args;
+    return makeBool(a.kind === Kind.Atom);
+  });
+  builtin("deref", (...args: Ty[]): Ty => {
+    const [a] = args;
+    switch (a.kind) {
+      case Kind.Atom: {
+        return a.ref;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${a.kind}, 'deref' expected atom.`,
+        );
+      }
+    }
+  });
+  builtin("reset!", (...args: Ty[]): Ty => {
+    const [a, ref] = args;
+    switch (a.kind) {
+      case Kind.Atom: {
+        a.ref = ref;
+        return ref;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${a.kind}, 'reset!' expected atom.`,
+        );
+      }
+    }
+  });
+  builtin("swap!", (...args: Ty[]): Ty => {
+    const [a, f, ...vars] = args;
+    if (a.kind !== Kind.Atom) {
+      throw new Error(
+        `unexpected expr type: ${a.kind}, 'swap!' expected atom as 1st arg.`,
+      );
+    }
+
+    switch (f.kind) {
+      case Kind.Func: {
+        // apply
+        bindArgs(f, [a.ref, ...vars]);
+        a.ref = evalAst(f.body, f.closure);
+        return a.ref;
+      }
+      case Kind.BuiltinFn: {
+        // apply
+        a.ref = f.fn(...[a.ref, ...vars]);
+        return a.ref;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${f.kind}, 'swap!' expected atom as 2nd arg.`,
+        );
+      }
+    }
+  });
+
   return env;
 }
 
 const arith = (op: (x: number, y: number) => number) => {
   const res = (...args: Ty[]): Ty => {
-    const x = args[0];
-    const y = args[1];
+    const [x, y] = args;
     if (x.kind !== Kind.Number || y.kind !== Kind.Number) {
       throw new Error(
         `unexpected expr type: lhs ${x.kind}, rhs ${y.kind}, arith op expected both numbers.`,
@@ -117,8 +215,7 @@ const arith = (op: (x: number, y: number) => number) => {
 
 const comparison = (op: (x: number, y: number) => boolean) => {
   const res = (...args: Ty[]): Ty => {
-    const x = args[0];
-    const y = args[1];
+    const [x, y] = args;
     if (x.kind !== Kind.Number || y.kind !== Kind.Number) {
       throw new Error(
         `unexpected expr type: lhs ${x.kind}, rhs ${y.kind}, comparison op expected both numbers.`,
