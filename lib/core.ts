@@ -154,6 +154,21 @@ function makeBuiltinEnv(): Env {
       }
     }
   });
+  builtin("reset!", (...args: Ty[]): Ty => {
+    const x = args[0];
+    const y = args[1];
+    switch (x.kind) {
+      case Kind.Atom: {
+        x.ref = y;
+        return y;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'reset!' expected atom.`,
+        );
+      }
+    }
+  });
   return env;
 }
 

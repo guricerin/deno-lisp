@@ -90,6 +90,8 @@ Deno.test(`atoms`, () => {
   assertEquals(evalHelper(`(atom? a)`, env), "true");
   assertEquals(evalHelper(`(atom? 1)`, env), "false");
   assertEquals(evalHelper(`(deref a)`, env), "2");
+  assertEquals(evalHelper(`(reset! a 3)`, env), "3");
+  assertEquals(evalHelper(`(deref a)`, env), "3");
 });
 
 Deno.test(`eval sets aa in root scope, and that it is found in nested scope`, () => {
