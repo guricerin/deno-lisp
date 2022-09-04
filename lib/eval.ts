@@ -102,6 +102,10 @@ export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
             }).slice(-1)[0]; // 最後の式を返り値とする。
             continue tco;
           }
+          case "quote": {
+            const [, q] = ast.list;
+            return q; // 評価はせずそのまま返す。
+          }
           default: {
             break;
           }

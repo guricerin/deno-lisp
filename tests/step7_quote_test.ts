@@ -92,6 +92,21 @@ Deno.test(`concat function: (concat a b (list 5 6))`, () => {
   assertEquals(evalHelper(`b`, env), `(3 4)`);
 });
 
+Deno.test(`regular quote: (quote 7)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quote 7)`, env), `7`);
+});
+
+Deno.test(`regular quote: (quote (1 2 3))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quote (1 2 3))`, env), `(1 2 3)`);
+});
+
+Deno.test(`regular quote: (quote (1 2 (3 4)))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quote (1 2 (3 4)))`, env), `(1 2 (3 4))`);
+});
+
 Deno.test(`regular quote: `, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
