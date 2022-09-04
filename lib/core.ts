@@ -81,6 +81,20 @@ function makeBuiltinEnv(): Env {
     const [x] = args;
     return makeBool(x.kind === Kind.List);
   });
+  builtin("cons", (...args: Ty[]): Ty => {
+    const [x, y] = args;
+    if (y.kind !== Kind.List && y.kind !== Kind.Vector) {
+      throw new Error(
+        `unexpected expr type: ${y.kind}, 'cons' expected list or vector as 2nd arg.`,
+      );
+    }
+    return makeList([x].concat(y.list));
+  });
+  // builtin("concat", (...args: Ty[]): Ty => {
+  //   args.reduce((acc, a) => {
+
+  //   })
+  // });
   builtin("empty?", (...args: Ty[]): Ty => {
     const [x] = args;
     if (equal(x, kNil)) {

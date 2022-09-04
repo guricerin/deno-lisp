@@ -67,7 +67,7 @@ Deno.test(`eval: (eval (read-string "(+ 2 3)"))`, () => {
   assertEquals(evalHelper(t, env), s);
 });
 
-Deno.test(`Load the same file twice.`, () => {
+Deno.test(`Load the same file twice.`, { permissions: { read: true } }, () => {
   const env = makeEnvChain();
   const t = String.raw`(slurp "./tests/mal/test.txt")`; // 相対パスは、denoコマンドを実行したパス基準。
   const s = String.raw`"A line of text\n"`;
@@ -75,7 +75,7 @@ Deno.test(`Load the same file twice.`, () => {
   assertEquals(evalHelper(t, env), s);
 });
 
-Deno.test(`load-file`, () => {
+Deno.test(`load-file`, { permissions: { read: true } }, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(`(load-file "./tests/mal/inc.mal")`, env), "nil");
   assertEquals(evalHelper(`(inc1 7)`, env), "8");
@@ -118,7 +118,7 @@ Deno.test(`whether closures can retain atoms`, () => {
   assertEquals(evalHelper(`(g)`, env), "0");
 });
 
-Deno.test(`reading of large files`, () => {
+Deno.test(`reading of large files`, { permissions: { read: true } }, () => {
   const env = makeEnvChain();
   assertEquals(
     evalHelper(`(load-file "./tests/mal/computations.mal")`, env),
@@ -159,14 +159,16 @@ Deno.test(`eval sets aa in root scope, and that it is found in nested scope`, ()
   );
 });
 
-Deno.test(`comments in a file`, () => {
+Deno.test(`comments in a file`, { permissions: { read: true } }, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(`(load-file "./tests/mal/incB.mal")`, env), "nil");
   assertEquals(evalHelper(`(inc4 7)`, env), "11");
   assertEquals(evalHelper(`(inc5 7)`, env), "12");
 });
 
-Deno.test(`map literal across multiple lines in a file`, () => {
+Deno.test(`map literal across multiple lines in a file`, {
+  permissions: { read: true },
+}, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(`(load-file "./tests/mal/incC.mal")`, env), "nil");
   assertEquals(evalHelper(`mymap`, env), `{"a" 1}`);
