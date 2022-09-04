@@ -182,49 +182,32 @@ Deno.test(`unquote: (quasiquote (unquote 7))`, () => {
   assertEquals(evalHelper(`(quasiquote (unquote 7))`, env), `7`);
 });
 
-Deno.test(`unquote: `, () => {
+Deno.test(`unquote: (def! a 8)`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(def! a 8)`, env), `8`);
+  assertEquals(evalHelper(`(quasiquote a)`, env), `a`);
+  assertEquals(evalHelper(`(quasiquote (unquote a))`, env), `8`);
+  assertEquals(evalHelper(`(quasiquote (1 a 3))`, env), `(1 a 3)`);
+  assertEquals(evalHelper(`(quasiquote (1 (unquote a) 3))`, env), `(1 8 3)`);
 });
 
-Deno.test(`unquote: `, () => {
+Deno.test(`unquote: (def! b (quote (1 "b" "d")))`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(def! b (quote (1 "b" "d")))`, env), `(1 "b" "d")`);
+  assertEquals(evalHelper(`(quasiquote (1 b 3))`, env), `(1 b 3)`);
+  assertEquals(
+    evalHelper(`(quasiquote (1 (unquote b) 3))`, env),
+    `(1 (1 "b" "d") 3)`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquote ((unquote 1) (unquote 2)))`, env),
+    `(1 2)`,
+  );
 });
 
-Deno.test(`unquote: `, () => {
+Deno.test(`Quasiquote and environments`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
-});
-
-Deno.test(`unquote: `, () => {
-  const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
-});
-
-Deno.test(`unquote: `, () => {
-  const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
-});
-
-Deno.test(`unquote: `, () => {
-  const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
-});
-
-Deno.test(`unquote: `, () => {
-  const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
-});
-
-Deno.test(`unquote: `, () => {
-  const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
-});
-
-Deno.test(`unquote: `, () => {
-  const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(let* (x 0) (quasiquote (unquote x)))`, env), `0`);
 });
 
 Deno.test(`unquote: `, () => {
