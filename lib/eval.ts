@@ -1,14 +1,16 @@
-import { EnvChain, Kind, kNil, Ty } from "./types.ts";
+import { EnvChain, Kind, kNil, Ty, TyList } from "./types.ts";
 import {
   bindArgs,
   makeEnv,
   makeFunc,
   makeHashMap,
   makeList,
+  makeSymbol,
   makeVector,
   resolveSymbol,
   storeKeyVal,
   tyToBool,
+  tyToString,
 } from "./types_utils.ts";
 
 export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
@@ -106,6 +108,11 @@ export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
             const [, q] = ast.list;
             return q; // 評価はせずそのまま返す。
           }
+          case "quasiquote": {
+            const [, q] = ast.list;
+            ast = quasiquote(q);
+            continue tco;
+          }
           default: {
             break;
           }
@@ -176,4 +183,59 @@ function evalExpr(expr: Ty, envChain: EnvChain): Ty {
       return expr;
     }
   }
+}
+
+/**
+ * quasiquote内でのみ意味をもつ特殊形式
+ * unquote
+ * splice-unquote
+ * ref: http://www.nct9.ne.jp/m_hiroi/func/abcscm31.html
+ */
+function quasiquote(ast: Ty): Ty {
+  switch (ast.kind) {
+    case Kind.Symbol:
+    case Kind.HashMap: {
+      return makeList([makeSymbol("quote"), ast]);
+    }
+    case Kind.List: {
+      if (startsWith(ast.list, "unquote")) {
+        const [, q] = ast.list;
+        return q;
+      } else {
+        let acc = makeList([]);
+        for (let i = ast.list.length - 1; i >= 0; i--) {
+          acc = qqLoop(ast.list[i], acc);
+        }
+        return acc;
+      }
+    }
+    default: {
+      return ast;
+    }
+  }
+}
+
+function qqLoop(ast: Ty, acc: TyList): TyList {
+  if (ast.kind === Kind.List && startsWith(ast.list, "splice-unquote")) {
+    const [, cdr] = ast.list;
+    const ls = [makeSymbol("concat"), cdr, acc];
+    return makeList(ls);
+  } else {
+    const ls = [makeSymbol("cons"), quasiquote(ast), acc];
+    return makeList(ls);
+  }
+}
+
+function startsWith(ls: Ty[], sym: string): boolean {
+  if (ls.length !== 2) {
+    return false;
+  }
+
+  const [first, ..._rem] = ls;
+  switch (first.kind) {
+    case Kind.Symbol: {
+      return first.name === sym;
+    }
+  }
+  return false;
 }

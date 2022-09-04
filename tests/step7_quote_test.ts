@@ -107,7 +107,77 @@ Deno.test(`regular quote: (quote (1 2 (3 4)))`, () => {
   assertEquals(evalHelper(`(quote (1 2 (3 4)))`, env), `(1 2 (3 4))`);
 });
 
-Deno.test(`regular quote: `, () => {
+Deno.test(`simple quasiquote: (quasiquote nil)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote nil)`, env), `nil`);
+});
+
+Deno.test(`simple quasiquote: (quasiquote 7)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote 7)`, env), `7`);
+});
+
+Deno.test(`simple quasiquote: (quasiquote a)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote a)`, env), `a`);
+});
+
+Deno.test(`simple quasiquote: (quasiquote {"a" b})`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote {"a" b})`, env), `{"a" b}`);
+});
+
+Deno.test(`quasiquote with lists: (quasiquote ())`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote ())`, env), `()`);
+});
+
+Deno.test(`quasiquote with lists: (quasiquote (1 2 3))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote (1 2 3))`, env), `(1 2 3)`);
+});
+
+Deno.test(`quasiquote with lists: (quasiquote (a))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote (a))`, env), `(a)`);
+});
+
+Deno.test(`quasiquote with lists: (quasiquote (1 2 (3 4)))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote (1 2 (3 4)))`, env), `(1 2 (3 4))`);
+});
+
+Deno.test(`quasiquote with lists: (quasiquote (nil))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote (nil))`, env), `(nil)`);
+});
+
+Deno.test(`quasiquote with lists: (quasiquote (1 ()))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote (1 ()))`, env), `(1 ())`);
+});
+
+Deno.test(`quasiquote with lists: (quasiquote (() 1))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote (() 1))`, env), `(() 1)`);
+});
+
+Deno.test(`quasiquote with lists: (quasiquote (1 () 2))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote (1 () 2))`, env), `(1 () 2)`);
+});
+
+Deno.test(`quasiquote with lists: (quasiquote (()))`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquote (()))`, env), `(())`);
+});
+
+Deno.test(`quasiquote with lists: `, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`unquote: `, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });
