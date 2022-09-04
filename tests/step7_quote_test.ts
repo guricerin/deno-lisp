@@ -232,6 +232,45 @@ Deno.test(`splice-unquote`, () => {
   );
 });
 
+Deno.test(`symbol equality`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(= (quote abc) (quote abc))`, env), `true`);
+  assertEquals(evalHelper(`(= (quote abc) (quote abcd))`, env), `false`);
+  assertEquals(evalHelper(`(= (quote abc) "abc")`, env), `false`);
+  assertEquals(evalHelper(`(= "abc" (quote abc))`, env), `false`);
+  assertEquals(evalHelper(`(= "abc" (str (quote abc)))`, env), `true`);
+  assertEquals(evalHelper(`(= (quote abc) nil)`, env), `false`);
+  assertEquals(evalHelper(`(= nil (quote abc))`, env), `false`);
+});
+
+Deno.test(`' (quote) reader macro`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`'7`, env), `7`);
+  assertEquals(evalHelper(`'(1 2 3)`, env), `(1 2 3)`);
+  assertEquals(evalHelper(`'(1 2 (3 4))`, env), `(1 2 (3 4))`);
+});
+
+Deno.test(`cons and concat with vectors`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(cons 1 [])`, env), `(1)`);
+  assertEquals(evalHelper(`(cons [1] [2 3])`, env), `([1] 2 3)`);
+  assertEquals(evalHelper(`(cons 1 [2 3])`, env), `(1 2 3)`);
+  assertEquals(
+    evalHelper(`(concat [1 2] (list 3 4) [5 6])`, env),
+    `(1 2 3 4 5 6)`,
+  );
+  assertEquals(evalHelper(`(concat [1 2])`, env), `(1 2)`);
+});
+
+Deno.test(`vec function`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(vec (list))`, env), `[]`);
+  assertEquals(evalHelper(`(vec (list 1))`, env), `[1]`);
+  assertEquals(evalHelper(`(vec (list 1 2))`, env), `[1 2]`);
+  assertEquals(evalHelper(`(vec [])`, env), `[]`);
+  assertEquals(evalHelper(`(vec [1 2])`, env), `[1 2]`);
+});
+
 Deno.test(`unquote: `, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);

@@ -9,6 +9,7 @@ import {
   makeList,
   makeNumber,
   makeString,
+  makeVector,
   tyToString,
 } from "./types_utils.ts";
 import { parse } from "./reader.ts";
@@ -102,6 +103,22 @@ function makeBuiltinEnv(): Env {
       })
       .reduce((acc, l) => acc.concat(l), []);
     return makeList(ls);
+  });
+  builtin("vec", (...args: Ty[]): Ty => {
+    const [ls] = args;
+    switch (ls.kind) {
+      case Kind.List: {
+        return makeVector(ls.list);
+      }
+      case Kind.Vector: {
+        return ls;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${ls.kind}, 'vec' expected list or vector.`,
+        );
+      }
+    }
   });
   builtin("empty?", (...args: Ty[]): Ty => {
     const [x] = args;
