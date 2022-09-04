@@ -271,6 +271,46 @@ Deno.test(`vec function`, () => {
   assertEquals(evalHelper(`(vec [1 2])`, env), `[1 2]`);
 });
 
+Deno.test(`vec does not mutate the original list`, () => {
+  const env = makeEnvChain();
+  evalHelper(`(def! a (list 1 2))`, env);
+  assertEquals(evalHelper(`(vec a)`, env), `[1 2]`);
+  assertEquals(evalHelper(`a`, env), `(1 2)`);
+});
+
+Deno.test(`quine`, () => {
+  const env = makeEnvChain();
+  assertEquals(
+    evalHelper(
+      `((fn* (q) (quasiquote ((unquote q) (quote (unquote q))))) (quote (fn* (q) (quasiquote ((unquote q) (quote (unquote q)))))))`,
+      env,
+    ),
+    `((fn* (q) (quasiquote ((unquote q) (quote (unquote q))))) (quote (fn* (q) (quasiquote ((unquote q) (quote (unquote q)))))))`,
+  );
+});
+
+Deno.test(`unquote with vectors`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper("(def! a 8)", env), `8`);
+  assertEquals(evalHelper("`[~a]", env), `[8]`);
+  assertEquals(evalHelper("`[(~a)]", env), `[(8)]`);
+  assertEquals(evalHelper("`([~a])", env), `([8])`);
+  assertEquals(evalHelper("`[a ~a a]", env), `[a 8 a]`);
+  assertEquals(evalHelper("`([a ~a a])", env), `([a 8 a])`);
+  assertEquals(evalHelper("`[(a ~a a)]", env), `[(a 8 a)]`);
+});
+
+Deno.test(`splice-unquote with vectors`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(def! c '(1 "b" "d"))`, env), `(1 "b" "d")`);
+  assertEquals(evalHelper("`[~@c]", env), `[1 "b" "d"]`);
+  assertEquals(evalHelper("`[(~@c)]", env), `[(1 "b" "d")]`);
+  assertEquals(evalHelper("`([~@c])", env), `([1 "b" "d"])`);
+  assertEquals(evalHelper("`[1 ~@c 3]", env), `[1 1 "b" "d" 3]`);
+  assertEquals(evalHelper("`([1 ~@c 3])", env), `([1 1 "b" "d" 3])`);
+  assertEquals(evalHelper("`[(1 ~@c 3)]", env), `[(1 1 "b" "d" 3)]`);
+});
+
 Deno.test(`unquote: `, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);

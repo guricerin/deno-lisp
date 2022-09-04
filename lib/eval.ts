@@ -1,4 +1,4 @@
-import { EnvChain, Kind, kNil, Ty, TyList } from "./types.ts";
+import { EnvChain, Kind, kNil, Ty, TyList, TyVector } from "./types.ts";
 import {
   bindArgs,
   makeEnv,
@@ -186,41 +186,48 @@ function evalExpr(expr: Ty, envChain: EnvChain): Ty {
 
 /**
  * quasiquote内でのみ意味をもつ特殊形式
- * unquote
- * splice-unquote
+ * - unquote
+ * - splice-unquote
  * ref: http://www.nct9.ne.jp/m_hiroi/func/abcscm31.html
  */
-function quasiquote(ast: Ty): Ty {
-  switch (ast.kind) {
+function quasiquote(elt: Ty): Ty {
+  switch (elt.kind) {
     case Kind.Symbol:
     case Kind.HashMap: {
-      return makeList([makeSymbol("quote"), ast]);
+      return makeList([makeSymbol("quote"), elt]);
     }
     case Kind.List: {
-      if (startsWith(ast.list, "unquote")) {
-        const [, q] = ast.list;
+      if (startsWith(elt.list, "unquote")) {
+        const [, q] = elt.list;
         return q;
       } else {
-        let acc = makeList([]);
-        for (let i = ast.list.length - 1; i >= 0; i--) {
-          acc = qqLoop(ast.list[i], acc);
-        }
-        return acc;
+        return qqFoldBack(elt);
       }
     }
+    case Kind.Vector: {
+      return makeList([makeSymbol("vec"), qqFoldBack(elt)]);
+    }
     default: {
-      return ast;
+      return elt;
     }
   }
 }
 
-function qqLoop(ast: Ty, acc: TyList): TyList {
-  if (ast.kind === Kind.List && startsWith(ast.list, "splice-unquote")) {
-    const [, cdr] = ast.list;
+function qqFoldBack(elt: TyList | TyVector): TyList {
+  let acc = makeList([]);
+  for (let i = elt.list.length - 1; i >= 0; i--) {
+    acc = qqLoop(elt.list[i], acc);
+  }
+  return acc;
+}
+
+function qqLoop(elt: Ty, acc: TyList): TyList {
+  if (elt.kind === Kind.List && startsWith(elt.list, "splice-unquote")) {
+    const [, cdr] = elt.list;
     const ls = [makeSymbol("concat"), cdr, acc];
     return makeList(ls);
   } else {
-    const ls = [makeSymbol("cons"), quasiquote(ast), acc];
+    const ls = [makeSymbol("cons"), quasiquote(elt), acc];
     return makeList(ls);
   }
 }
