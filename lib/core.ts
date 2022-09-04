@@ -14,10 +14,13 @@ import { evalAst } from "./eval.ts";
 
 export function initEnvChain(): EnvChain {
   const res = [makeBuiltinEnv()];
-  const helper = ((code: string) => {
+  const defInMal = ((code: string) => {
     evalAst(parse(code), res);
   });
-  helper("(def! not (fn* (a) (if a false true)))");
+  defInMal("(def! not (fn* (a) (if a false true)))");
+  defInMal(
+    '(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))',
+  );
   return res;
 }
 

@@ -75,6 +75,14 @@ Deno.test(`Load the same file twice.`, () => {
   assertEquals(evalHelper(t, env), s);
 });
 
+Deno.test(`load-file`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(load-file "./tests/mal/inc.mal")`, env), "nil");
+  assertEquals(evalHelper(`(inc1 7)`, env), "8");
+  assertEquals(evalHelper(`(inc2 7)`, env), "9");
+  assertEquals(evalHelper(`(inc3 9)`, env), "12");
+});
+
 Deno.test(`Checking that eval does not use local environments.`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(`(def! a 1)`, env), "1");
