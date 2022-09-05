@@ -1,4 +1,13 @@
-import { EnvChain, Kind, kNil, Ty, TyList, TyVector } from "./types.ts";
+import {
+  Env,
+  EnvChain,
+  Kind,
+  kNil,
+  Ty,
+  TyFunc,
+  TyList,
+  TyVector,
+} from "./types.ts";
 import {
   bindArgs,
   makeEnv,
@@ -9,6 +18,7 @@ import {
   makeVector,
   resolveSymbol,
   storeKeyVal,
+  toMacro,
   tyToBool,
 } from "./types_utils.ts";
 
@@ -25,8 +35,16 @@ export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
     if (ast.list.length === 0) {
       return ast;
     }
-    const first = ast.list[0];
 
+    [ast, envChain] = macroExpand(ast, envChain);
+    if (ast.kind !== Kind.List) {
+      return evalExpr(ast, envChain);
+    }
+    if (ast.list.length === 0) {
+      return ast;
+    }
+
+    const first = ast.list[0];
     switch (first.kind) {
       case Kind.Symbol: { // special forms
         switch (first.name) {
@@ -116,6 +134,26 @@ export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
             const [, q] = ast.list;
             return quasiquote(q);
           }
+          case "defmacro!": {
+            const [, sym, fnStar] = ast.list;
+            if (sym.kind !== Kind.Symbol) {
+              throw new Error(
+                `unexpected expr type: ${sym.kind}, 'defmacro!' expected symbol as 1st arg.`,
+              );
+            }
+            const fn = evalAst(fnStar, envChain);
+            if (fn.kind !== Kind.Func) {
+              throw new Error(
+                `unexpected expr type: ${fn.kind}, 'defmacro!' expected function as 2nd arg.`,
+              );
+            }
+            return storeKeyVal(sym, toMacro(fn), envChain);
+          }
+          case "macroexpand": { // デバッグ用。実用では使わない。
+            const [, q] = ast.list;
+            const [a, _b] = macroExpand(q, envChain);
+            return a;
+          }
           default: {
             break;
           }
@@ -186,6 +224,30 @@ function evalExpr(expr: Ty, envChain: EnvChain): Ty {
       return expr;
     }
   }
+}
+
+function macroExpand(ast: Ty, envChain: EnvChain): [Ty, EnvChain] {
+  while (true) {
+    if (ast.kind !== Kind.List) {
+      break;
+    }
+    if (ast.list.length === 0) {
+      break;
+    }
+    const [sym, ...args] = ast.list;
+    if (sym.kind !== Kind.Symbol) {
+      break;
+    }
+    const fn = resolveSymbol(sym, envChain);
+    if (!fn || fn.kind !== Kind.Func || !fn.isMacro) {
+      break;
+    }
+    bindArgs(fn, args);
+    ast = fn.body;
+    envChain = fn.closure;
+  }
+
+  return [ast, envChain];
 }
 
 /**

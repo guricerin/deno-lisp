@@ -162,12 +162,21 @@ export function makeFunc(
   params: TySymbol[],
   body: Ty,
   envChain: EnvChain,
+  isMacro = false,
 ): TyFunc {
   return {
     kind: Kind.Func,
     params: params,
     body: body,
     closure: envChain,
+    isMacro: isMacro,
+  };
+}
+
+export function toMacro(fn: TyFunc): TyFunc {
+  return {
+    ...fn,
+    isMacro: true,
   };
 }
 

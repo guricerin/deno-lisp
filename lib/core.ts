@@ -120,6 +120,52 @@ function makeBuiltinEnv(): Env {
       }
     }
   });
+  builtin("nth", (...args: Ty[]): Ty => {
+    const [ls, i] = args;
+    if (ls.kind !== Kind.List && ls.kind !== Kind.Vector) {
+      throw new Error(
+        `unexpected expr type: ${ls.kind}, 'nth' expected list or vector as 1st arg.`,
+      );
+    }
+    if (i.kind !== Kind.Number) {
+      throw new Error(
+        `unexpected expr type: ${i.kind}, 'nth' expected number as 2nd arg.`,
+      );
+    }
+    return ls.list[i.val];
+  });
+  builtin("first", (...args: Ty[]): Ty => {
+    const [ls] = args;
+    if (ls.kind === Kind.Nil) {
+      return kNil;
+    }
+    if (ls.kind !== Kind.List && ls.kind !== Kind.Vector) {
+      throw new Error(
+        `unexpected expr type: ${ls.kind}, 'first' expected list or vector as 1st arg.`,
+      );
+    }
+    if (ls.list.length === 0) {
+      return kNil;
+    } else {
+      return ls.list[0];
+    }
+  });
+  builtin("rest", (...args: Ty[]): Ty => {
+    const [ls] = args;
+    if (ls.kind === Kind.Nil) {
+      return makeList([]);
+    }
+    if (ls.kind !== Kind.List && ls.kind !== Kind.Vector) {
+      throw new Error(
+        `unexpected expr type: ${ls.kind}, 'first' expected list or vector as 1st arg.`,
+      );
+    }
+    if (ls.list.length === 0) {
+      return makeList([]);
+    } else {
+      return makeList(ls.list.slice(1));
+    }
+  });
   builtin("empty?", (...args: Ty[]): Ty => {
     const [x] = args;
     if (equal(x, kNil)) {

@@ -108,6 +108,7 @@ export interface TyBuiltinFn {
  */
 export interface TyFunc {
   kind: Kind.Func;
+  isMacro: boolean;
   /**
    * 仮引数: inner envで実引数の値にbindされる。
    */
