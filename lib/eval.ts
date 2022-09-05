@@ -112,6 +112,10 @@ export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
             ast = quasiquote(q);
             continue tco;
           }
+          case "quasiquoteexpand": { // デバッグ用。実用では使わない。
+            const [, q] = ast.list;
+            return quasiquote(q);
+          }
           default: {
             break;
           }
@@ -188,7 +192,7 @@ function evalExpr(expr: Ty, envChain: EnvChain): Ty {
  * quasiquote内でのみ意味をもつ特殊形式
  * - unquote
  * - splice-unquote
- * ref: http://www.nct9.ne.jp/m_hiroi/func/abcscm31.html
+ * - ref: http://www.nct9.ne.jp/m_hiroi/func/abcscm31.html
  */
 function quasiquote(elt: Ty): Ty {
   switch (elt.kind) {

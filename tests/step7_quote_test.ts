@@ -311,7 +311,123 @@ Deno.test(`splice-unquote with vectors`, () => {
   assertEquals(evalHelper("`[(1 ~@c 3)]", env), `[(1 1 "b" "d" 3)]`);
 });
 
-Deno.test(`unquote: `, () => {
+Deno.test(`Misplaced unquote or splice-unquote`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper("`(0 unquote)", env), `(0 unquote)`);
+  assertEquals(evalHelper("`(0 splice-unquote)", env), `(0 splice-unquote)`);
+  assertEquals(evalHelper("`[unquote 0]", env), `[unquote 0]`);
+  assertEquals(evalHelper("`[splice-unquote 0]", env), `[splice-unquote 0]`);
+});
+
+Deno.test(`Debugging quasiquote`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(quasiquoteexpand nil)`, env), `nil`);
+  assertEquals(evalHelper(`(quasiquoteexpand 7)`, env), `7`);
+  assertEquals(evalHelper(`(quasiquoteexpand a)`, env), `(quote a)`);
+  assertEquals(
+    evalHelper(`(quasiquoteexpand {"a" b})`, env),
+    `(quote {"a" b})`,
+  );
+  assertEquals(evalHelper(`(quasiquoteexpand ())`, env), `()`);
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (1 2 3))`, env),
+    `(cons 1 (cons 2 (cons 3 ())))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (a))`, env),
+    `(cons (quote a) ())`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (1 2 (3 4)))`, env),
+    `(cons 1 (cons 2 (cons (cons 3 (cons 4 ())) ())))`,
+  );
+  assertEquals(evalHelper(`(quasiquoteexpand (nil))`, env), `(cons nil ())`);
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (1 ()))`, env),
+    `(cons 1 (cons () ()))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (() 1))`, env),
+    `(cons () (cons 1 ()))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (1 () 2))`, env),
+    `(cons 1 (cons () (cons 2 ())))`,
+  );
+  assertEquals(evalHelper(`(quasiquoteexpand (()))`, env), `(cons () ())`);
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (f () g (h) i (j k) l))`, env),
+    `(cons (quote f) (cons () (cons (quote g) (cons (cons (quote h) ()) (cons (quote i) (cons (cons (quote j) (cons (quote k) ())) (cons (quote l) ())))))))`,
+  );
+  assertEquals(evalHelper(`(quasiquoteexpand (unquote 7))`, env), `7`);
+  assertEquals(evalHelper(`(quasiquoteexpand a)`, env), `(quote a)`);
+  assertEquals(evalHelper(`(quasiquoteexpand (unquote a))`, env), `a`);
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (1 a 3))`, env),
+    `(cons 1 (cons (quote a) (cons 3 ())))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (1 (unquote a) 3))`, env),
+    `(cons 1 (cons a (cons 3 ())))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (1 b 3))`, env),
+    `(cons 1 (cons (quote b) (cons 3 ())))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (1 (unquote b) 3))`, env),
+    `(cons 1 (cons b (cons 3 ())))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand ((unquote 1) (unquote 2)))`, env),
+    `(cons 1 (cons 2 ()))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (a (splice-unquote (b c)) d))`, env),
+    `(cons (quote a) (concat (b c) (cons (quote d) ())))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (1 c 3))`, env),
+    `(cons 1 (cons (quote c) (cons 3 ())))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (1 (splice-unquote c) 3))`, env),
+    `(cons 1 (concat c (cons 3 ())))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand (1 (splice-unquote c)))`, env),
+    `(cons 1 (concat c ()))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand ((splice-unquote c) 2))`, env),
+    `(concat c (cons 2 ()))`,
+  );
+  assertEquals(
+    evalHelper(
+      `(quasiquoteexpand ((splice-unquote c) (splice-unquote c)))`,
+      env,
+    ),
+    `(concat c (concat c ()))`,
+  );
+  assertEquals(evalHelper(`(quasiquoteexpand [])`, env), `(vec ())`);
+  assertEquals(
+    evalHelper(`(quasiquoteexpand [[]])`, env),
+    `(vec (cons (vec ()) ()))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand [()])`, env),
+    `(vec (cons () ()))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand ([]))`, env),
+    `(cons (vec ()) ())`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand [1 a 3])`, env),
+    `(vec (cons 1 (cons (quote a) (cons 3 ()))))`,
+  );
+  assertEquals(
+    evalHelper(`(quasiquoteexpand [a [] b [c] d [e f] g])`, env),
+    `(vec (cons (quote a) (cons (vec ()) (cons (quote b) (cons (vec (cons (quote c) ())) (cons (quote d) (cons (vec (cons (quote e) (cons (quote f) ()))) (cons (quote g) ()))))))))`,
+  );
 });
