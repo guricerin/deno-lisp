@@ -231,9 +231,9 @@ function macroExpand(ast: Ty, envChain: EnvChain): [Ty, EnvChain] {
     if (ast.kind !== Kind.List) {
       break;
     }
-    if (ast.list.length === 0) {
-      break;
-    }
+    // if (ast.list.length === 0) {
+    //   break;
+    // }
     const [sym, ...args] = ast.list;
     if (sym.kind !== Kind.Symbol) {
       break;
@@ -242,6 +242,7 @@ function macroExpand(ast: Ty, envChain: EnvChain): [Ty, EnvChain] {
     if (!fn || fn.kind !== Kind.Func || !fn.isMacro) {
       break;
     }
+
     bindArgs(fn, args);
     ast = fn.body;
     envChain = fn.closure;

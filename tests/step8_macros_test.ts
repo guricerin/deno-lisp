@@ -44,10 +44,16 @@ Deno.test(`unless macros`, () => {
 
 Deno.test(`macroexpand`, () => {
   const env = makeEnvChain();
+  evalHelper(`(defmacro! one (fn* () 1))`, env);
   assertEquals(evalHelper(`(macroexpand (one))`, env), `1`);
+  evalHelper("(defmacro! unless (fn* (pred a b) `(if ~pred ~b ~a)))", env);
   assertEquals(
     evalHelper(`(macroexpand (unless PRED A B))`, env),
     `(if PRED B A)`,
+  );
+  evalHelper(
+    "(defmacro! unless2 (fn* (pred a b) (list 'if (list 'not pred) a b)))",
+    env,
   );
   assertEquals(
     evalHelper(`(macroexpand (unless2 PRED A B))`, env),
