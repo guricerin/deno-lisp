@@ -9,6 +9,7 @@ import {
   makeList,
   makeNumber,
   makeString,
+  makeVector,
   tyToString,
 } from "./types_utils.ts";
 import { parse } from "./reader.ts";
@@ -80,6 +81,44 @@ function makeBuiltinEnv(): Env {
   builtin("list?", (...args: Ty[]): Ty => {
     const [x] = args;
     return makeBool(x.kind === Kind.List);
+  });
+  builtin("cons", (...args: Ty[]): Ty => {
+    const [x, y] = args;
+    if (y.kind !== Kind.List && y.kind !== Kind.Vector) {
+      throw new Error(
+        `unexpected expr type: ${y.kind}, 'cons' expected list or vector as 2nd arg.`,
+      );
+    }
+    return makeList([x].concat(y.list));
+  });
+  builtin("concat", (...args: Ty[]): Ty => {
+    const ls = args
+      .map((l) => {
+        if (l.kind !== Kind.List && l.kind !== Kind.Vector) {
+          throw new Error(
+            `unexpected expr type: ${l.kind}, 'concat' expected list or vector.`,
+          );
+        }
+        return l.list;
+      })
+      .reduce((acc, l) => acc.concat(l), []);
+    return makeList(ls);
+  });
+  builtin("vec", (...args: Ty[]): Ty => {
+    const [ls] = args;
+    switch (ls.kind) {
+      case Kind.List: {
+        return makeVector(ls.list);
+      }
+      case Kind.Vector: {
+        return ls;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${ls.kind}, 'vec' expected list or vector.`,
+        );
+      }
+    }
   });
   builtin("empty?", (...args: Ty[]): Ty => {
     const [x] = args;

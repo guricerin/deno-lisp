@@ -1,10 +1,11 @@
-import { EnvChain, Kind, kNil, Ty } from "./types.ts";
+import { EnvChain, Kind, kNil, Ty, TyList, TyVector } from "./types.ts";
 import {
   bindArgs,
   makeEnv,
   makeFunc,
   makeHashMap,
   makeList,
+  makeSymbol,
   makeVector,
   resolveSymbol,
   storeKeyVal,
@@ -102,6 +103,19 @@ export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
             }).slice(-1)[0]; // 最後の式を返り値とする。
             continue tco;
           }
+          case "quote": {
+            const [, q] = ast.list;
+            return q; // 評価はせずそのまま返す。
+          }
+          case "quasiquote": {
+            const [, q] = ast.list;
+            ast = quasiquote(q);
+            continue tco;
+          }
+          case "quasiquoteexpand": { // デバッグ用。実用では使わない。
+            const [, q] = ast.list;
+            return quasiquote(q);
+          }
           default: {
             break;
           }
@@ -172,4 +186,66 @@ function evalExpr(expr: Ty, envChain: EnvChain): Ty {
       return expr;
     }
   }
+}
+
+/**
+ * quasiquote内でのみ意味をもつ特殊形式
+ * - unquote
+ * - splice-unquote
+ * - ref: http://www.nct9.ne.jp/m_hiroi/func/abcscm31.html
+ */
+function quasiquote(elt: Ty): Ty {
+  switch (elt.kind) {
+    case Kind.Symbol:
+    case Kind.HashMap: {
+      return makeList([makeSymbol("quote"), elt]);
+    }
+    case Kind.List: {
+      if (startsWith(elt.list, "unquote")) {
+        const [, q] = elt.list;
+        return q;
+      } else {
+        return qqFoldBack(elt);
+      }
+    }
+    case Kind.Vector: {
+      return makeList([makeSymbol("vec"), qqFoldBack(elt)]);
+    }
+    default: {
+      return elt;
+    }
+  }
+}
+
+function qqFoldBack(elt: TyList | TyVector): TyList {
+  let acc = makeList([]);
+  for (let i = elt.list.length - 1; i >= 0; i--) {
+    acc = qqLoop(elt.list[i], acc);
+  }
+  return acc;
+}
+
+function qqLoop(elt: Ty, acc: TyList): TyList {
+  if (elt.kind === Kind.List && startsWith(elt.list, "splice-unquote")) {
+    const [, cdr] = elt.list;
+    const ls = [makeSymbol("concat"), cdr, acc];
+    return makeList(ls);
+  } else {
+    const ls = [makeSymbol("cons"), quasiquote(elt), acc];
+    return makeList(ls);
+  }
+}
+
+function startsWith(ls: Ty[], sym: string): boolean {
+  if (ls.length !== 2) {
+    return false;
+  }
+
+  const [first, ..._rem] = ls;
+  switch (first.kind) {
+    case Kind.Symbol: {
+      return first.name === sym;
+    }
+  }
+  return false;
 }
