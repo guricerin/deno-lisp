@@ -14,6 +14,7 @@ import {
   TyHashMap,
   TyKeyword,
   TyList,
+  TyMacro,
   TyNumber,
   TyString,
   TySymbol,
@@ -133,6 +134,18 @@ export function makeEnv(): Env {
   return new Map<string, Ty>();
 }
 
+// デバッグ用
+export function dumpEnv(envChain: EnvChain): string {
+  let res = "";
+  for (let i = 0; i < envChain.length; i++) {
+    for (const k of envChain[i].keys()) {
+      res += `${k}, `;
+    }
+    res += "\n";
+  }
+  return res;
+}
+
 export function resolveSymbol(
   sym: TySymbol,
   envChain: EnvChain,
@@ -162,25 +175,36 @@ export function makeFunc(
   params: TySymbol[],
   body: Ty,
   envChain: EnvChain,
-  isMacro = false,
 ): TyFunc {
   return {
     kind: Kind.Func,
     params: params,
     body: body,
     closure: envChain,
-    isMacro: isMacro,
   };
 }
 
-export function toMacro(fn: TyFunc): TyFunc {
+export function toMacro(fn: TyFunc): TyMacro {
   return {
     ...fn,
-    isMacro: true,
+    kind: Kind.Macro,
   };
 }
 
-export function bindArgs(fn: TyFunc, args: Ty[]) {
+export function makeMacro(
+  params: TySymbol[],
+  body: Ty,
+  envChain: EnvChain,
+): TyMacro {
+  return {
+    kind: Kind.Macro,
+    params: params,
+    body: body,
+    closure: envChain,
+  };
+}
+
+export function bindArgs(fn: TyFunc | TyMacro, args: Ty[]) {
   const innerEnv = makeEnv();
   for (let i = 0; i < fn.params.length; i++) {
     // 可変長引数
@@ -305,6 +329,9 @@ export function tyToString(ty: Ty, readably: boolean): string {
     }
     case Kind.Func: {
       return "#<function>";
+    }
+    case Kind.Macro: {
+      return "#<macro>";
     }
     case Kind.Atom: {
       return `(atom ${tyToString(ty.ref, readably)})`;

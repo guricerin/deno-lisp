@@ -10,16 +10,19 @@ import {
 } from "./types.ts";
 import {
   bindArgs,
+  dumpEnv,
   makeEnv,
   makeFunc,
   makeHashMap,
   makeList,
+  makeMacro,
   makeSymbol,
   makeVector,
   resolveSymbol,
   storeKeyVal,
   toMacro,
   tyToBool,
+  tyToString,
 } from "./types_utils.ts";
 
 export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
@@ -36,7 +39,7 @@ export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
       return ast;
     }
 
-    [ast, envChain] = macroExpand(ast, envChain);
+    ast = macroExpand(ast, envChain);
     if (ast.kind !== Kind.List) {
       return evalExpr(ast, envChain);
     }
@@ -58,7 +61,7 @@ export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
             return storeKeyVal(sym, evalAst(val, envChain), envChain);
           }
           case "let*": { // (let* (key val ...) ret)
-            const letEnvChain = [makeEnv(), ...envChain]; // 既存の（外側の）環境は破壊的変更をしないようにする。
+            const letEnvChain = [makeEnv(), ...envChain];
             const pairs = ast.list[1];
             switch (pairs.kind) {
               case Kind.List:
@@ -147,12 +150,15 @@ export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
                 `unexpected expr type: ${fn.kind}, 'defmacro!' expected function as 2nd arg.`,
               );
             }
-            return storeKeyVal(sym, toMacro(fn), envChain);
+            return storeKeyVal(
+              sym,
+              toMacro(fn),
+              envChain,
+            );
           }
           case "macroexpand": { // デバッグ用。実用では使わない。
             const [, q] = ast.list;
-            const [a, _b] = macroExpand(q, envChain);
-            return a;
+            return macroExpand(q, envChain);
           }
           default: {
             break;
@@ -226,29 +232,25 @@ function evalExpr(expr: Ty, envChain: EnvChain): Ty {
   }
 }
 
-function macroExpand(ast: Ty, envChain: EnvChain): [Ty, EnvChain] {
+function macroExpand(ast: Ty, envChain: EnvChain): Ty {
   while (true) {
     if (ast.kind !== Kind.List) {
       break;
     }
-    // if (ast.list.length === 0) {
-    //   break;
-    // }
     const [sym, ...args] = ast.list;
     if (sym.kind !== Kind.Symbol) {
       break;
     }
-    const fn = resolveSymbol(sym, envChain);
-    if (!fn || fn.kind !== Kind.Func || !fn.isMacro) {
+    const macro = resolveSymbol(sym, envChain);
+    if (!macro || macro.kind !== Kind.Macro) {
       break;
     }
 
-    bindArgs(fn, args);
-    ast = fn.body;
-    envChain = fn.closure;
+    bindArgs(macro, args);
+    ast = evalAst(macro.body, macro.closure);
   }
 
-  return [ast, envChain];
+  return ast;
 }
 
 /**

@@ -65,9 +65,20 @@ Deno.test(`macroexpand`, () => {
   );
 });
 
-Deno.test(`evaluation of macro result`, () => {
+Deno.test(`evaluation of macro result 1`, () => {
   const env = makeEnvChain();
   evalHelper(`(defmacro! identity (fn* (x) x))`, env);
+  assertEquals(evalHelper(`(let* (a 123) (identity a))`, env), `123`);
+  assertEquals(
+    evalHelper(`(let* (a 123) (macroexpand (identity a)))`, env),
+    `a`,
+  );
+});
+
+Deno.test(`evaluation of macro result 2`, () => {
+  const env = makeEnvChain();
+  evalHelper(`(defmacro! identity (fn* (x) x))`, env);
+  assertEquals(evalHelper(`(let* (a 123) a)`, env), `123`);
   assertEquals(
     evalHelper(`(let* (a 123) (macroexpand (identity a)))`, env),
     `a`,
@@ -116,7 +127,7 @@ Deno.test(`cond macro`, () => {
   assertEquals(evalHelper(`(cond)`, env), `nil`);
   assertEquals(evalHelper(`(macroexpand (cond X Y))`, env), `(if X Y (cond))`);
   assertEquals(evalHelper(`(cond true 7)`, env), `7`);
-  assertEquals(evalHelper(`(cond false 7)`, env), `7`);
+  assertEquals(evalHelper(`(cond false 7)`, env), `nil`);
   assertEquals(
     evalHelper(`(macroexpand (cond X Y Z T))`, env),
     `(if X Y (cond Z T))`,
