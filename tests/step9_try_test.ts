@@ -110,8 +110,11 @@ Deno.test(`hash-maps`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(`(hash-map "a" 1)`, env), `{"a" 1}`);
   assertEquals(evalHelper(`{"a" 1}`, env), `{"a" 1}`);
-  assertEquals(evalHelper(``, env), ``);
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(assoc {} "a" 1)`, env), `{"a" 1}`);
+  assertEquals(
+    evalHelper(`(get (assoc (assoc {"a" 1 } "b" 2) "c" 3) "a")`, env),
+    `1`,
+  );
   assertEquals(evalHelper(``, env), ``);
   assertEquals(evalHelper(``, env), ``);
   assertEquals(evalHelper(``, env), ``);

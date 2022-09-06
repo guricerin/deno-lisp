@@ -1,7 +1,9 @@
 import { Env, EnvChain, kFalse, Kind, kNil, kTrue, Ty } from "./types.ts";
 import {
   bindArgs,
+  dumpMap,
   equal,
+  getValue,
   makeAtom,
   makeBool,
   makeBuiltinFunc,
@@ -13,6 +15,7 @@ import {
   makeString,
   makeSymbol,
   makeVector,
+  mergeHashMap,
   tyToString,
 } from "./types_utils.ts";
 import { parse } from "./reader.ts";
@@ -156,6 +159,31 @@ function makeBuiltinEnv(): Env {
   builtin("map?", (...args: Ty[]): Ty => {
     const [x] = args;
     return makeBool(x.kind === Kind.HashMap);
+  });
+  builtin("assoc", (...args: Ty[]): Ty => {
+    const [map, ...rem] = args;
+    if (map.kind !== Kind.HashMap) {
+      throw new Error(
+        `unexpected expr type: ${map.kind}, 'assoc' expected hashmap as 1st arg.`,
+      );
+    }
+    const res = mergeHashMap(map, rem);
+    console.log(dumpMap(res));
+    return res;
+  });
+  builtin("get", (...args: Ty[]): Ty => {
+    const [map, key] = args;
+    if (map.kind !== Kind.HashMap) {
+      throw new Error(
+        `unexpected expr type: ${map.kind}, 'get' expected hashmap as 1st arg.`,
+      );
+    }
+    if (key.kind !== Kind.String && key.kind !== Kind.Keyword) {
+      throw new Error(
+        `unexpected expr type: ${key.kind}, 'get' expected string or keyword as 2nd arg.`,
+      );
+    }
+    return kNil; // TODO
   });
   builtin("sequential?", (...args: Ty[]): Ty => {
     const [x] = args;

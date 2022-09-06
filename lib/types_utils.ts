@@ -130,6 +130,23 @@ export function makeHashMap(list: Ty[]): TyHashMap {
   return res;
 }
 
+export function mergeHashMap(mp: TyHashMap, ls: Ty[]): TyHashMap {
+  const other = makeHashMap(ls);
+  for (const [k, v] of mp.map.entries()) {
+    other.map.set(k, v);
+  }
+  return other;
+}
+
+// デバッグ用
+export function dumpMap(mp: TyHashMap): string {
+  let res = "";
+  for (const [k, v] of mp.map.entries()) {
+    res += `${k}: ${tyToString(v, true)}, `;
+  }
+  return res;
+}
+
 export function makeEnv(): Env {
   return new Map<string, Ty>();
 }
@@ -144,6 +161,18 @@ export function dumpEnv(envChain: EnvChain): string {
     res += "\n";
   }
   return res;
+}
+
+export function getValue(mp: TyHashMap, key: TyString | TyKeyword): Ty {
+  return kNil;
+  // const k = (() => {
+  //   if (key.kind === Kind.String) {
+  //     return key.val;
+  //   } else {
+  //     return `:${key.name}`;
+  //   }
+  // })();
+  // return mp.map.get(k) ?? kNil;
 }
 
 export function resolveSymbol(
