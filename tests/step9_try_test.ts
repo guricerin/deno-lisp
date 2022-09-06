@@ -82,3 +82,31 @@ Deno.test(`apply function with core functions and arguments in vector`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });
+
+Deno.test(`apply function with user functions and arguments in vector`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`map function with vectors`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`vector functions`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(vector? [10 11])`, env), `true`);
+  assertEquals(evalHelper(`(vector? '(12 13))`, env), `false`);
+  assertEquals(evalHelper(`(vector 3 4 5)`, env), `[3 4 5]`);
+  assertEquals(evalHelper(`(= [] (vector))`, env), `true`);
+  assertEquals(evalHelper(`(map? {})`, env), `true`);
+  assertEquals(evalHelper(`(map? '())`, env), `false`);
+  assertEquals(evalHelper(`(map? [])`, env), `false`);
+  assertEquals(evalHelper(`(map? 'abc)`, env), `false`);
+  assertEquals(evalHelper(`(map? :abc)`, env), `false`);
+});
+
+Deno.test(`hash-maps`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});

@@ -142,6 +142,17 @@ function makeBuiltinEnv(): Env {
     const [x] = args;
     return makeBool(x.kind === Kind.List);
   });
+  builtin("vector", (...args: Ty[]): Ty => {
+    return makeVector(args);
+  });
+  builtin("vector?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    return makeBool(x.kind === Kind.Vector);
+  });
+  builtin("map?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    return makeBool(x.kind === Kind.HashMap);
+  });
   builtin("sequential?", (...args: Ty[]): Ty => {
     const [x] = args;
     return makeBool(x.kind === Kind.List || x.kind === Kind.Vector);
