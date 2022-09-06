@@ -1,4 +1,4 @@
-import { Env, EnvChain, Kind, kNil, Ty } from "./types.ts";
+import { Env, EnvChain, kFalse, Kind, kNil, kTrue, Ty } from "./types.ts";
 import {
   bindArgs,
   equal,
@@ -6,9 +6,11 @@ import {
   makeBool,
   makeBuiltinFunc,
   makeEnv,
+  makeKeyword,
   makeList,
   makeNumber,
   makeString,
+  makeSymbol,
   makeVector,
   tyToString,
 } from "./types_utils.ts";
@@ -51,6 +53,61 @@ function makeBuiltinEnv(): Env {
   builtin("=", (...args: Ty[]): Ty => {
     const [x, y] = args;
     return makeBool(equal(x, y));
+  });
+  builtin("nil?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    switch (x.kind) {
+      case Kind.Nil:
+        return kTrue;
+      default:
+        return kFalse;
+    }
+  });
+  builtin("true?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Bool && x.val === true;
+    return makeBool(res);
+  });
+  builtin("false?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Bool && x.val === false;
+    return makeBool(res);
+  });
+  builtin("symbol", (...args: Ty[]): Ty => {
+    const [x] = args;
+    switch (x.kind) {
+      case Kind.String: {
+        return makeSymbol(x.val);
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'symbol' expected string.`,
+        );
+      }
+    }
+  });
+  builtin("symbol?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Symbol;
+    return makeBool(res);
+  });
+  builtin("keyword", (...args: Ty[]): Ty => {
+    const [x] = args;
+    switch (x.kind) {
+      case Kind.String: {
+        return makeKeyword(x.val);
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'keyword' expected string.`,
+        );
+      }
+    }
+  });
+  builtin("keyword?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Keyword;
+    return makeBool(res);
   });
   builtin("pr-str", (...args: Ty[]): Ty => {
     const s = args.map((x) => {
