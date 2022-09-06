@@ -6,6 +6,7 @@ import {
   makeBool,
   makeBuiltinFunc,
   makeEnv,
+  makeHashMap,
   makeKeyword,
   makeList,
   makeNumber,
@@ -148,6 +149,9 @@ function makeBuiltinEnv(): Env {
   builtin("vector?", (...args: Ty[]): Ty => {
     const [x] = args;
     return makeBool(x.kind === Kind.Vector);
+  });
+  builtin("hash-map", (...args: Ty[]): Ty => {
+    return makeHashMap(args);
   });
   builtin("map?", (...args: Ty[]): Ty => {
     const [x] = args;

@@ -108,5 +108,20 @@ Deno.test(`vector functions`, () => {
 
 Deno.test(`hash-maps`, () => {
   const env = makeEnvChain();
+  assertEquals(evalHelper(`(hash-map "a" 1)`, env), `{"a" 1}`);
+  assertEquals(evalHelper(`{"a" 1}`, env), `{"a" 1}`);
+  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`hash-maps`, () => {
+  const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });
