@@ -69,7 +69,16 @@ Deno.test(`symbol and keyword functions`, () => {
   assertEquals(evalHelper(`(keyword "abc")`, env), `:abc`);
 });
 
-Deno.test(`map function`, () => {
+Deno.test(`sequential? function`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(sequential? (list 1 2 3))`, env), `true`);
+  assertEquals(evalHelper(`(sequential? [15])`, env), `true`);
+  assertEquals(evalHelper(`(sequential? sequential?)`, env), `false`);
+  assertEquals(evalHelper(`(sequential? nil)`, env), `false`);
+  assertEquals(evalHelper(`(sequential? "abc")`, env), `false`);
+});
+
+Deno.test(`apply function with core functions and arguments in vector`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });

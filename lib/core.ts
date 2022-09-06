@@ -142,6 +142,10 @@ function makeBuiltinEnv(): Env {
     const [x] = args;
     return makeBool(x.kind === Kind.List);
   });
+  builtin("sequential?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    return makeBool(x.kind === Kind.List || x.kind === Kind.Vector);
+  });
   builtin("cons", (...args: Ty[]): Ty => {
     const [x, y] = args;
     if (y.kind !== Kind.List && y.kind !== Kind.Vector) {
