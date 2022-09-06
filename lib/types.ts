@@ -10,6 +10,7 @@ export type Ty =
   | TyHashMap
   | TyBuiltinFn
   | TyFunc
+  | TyMacro
   | TyAtom;
 
 export const enum Kind {
@@ -24,6 +25,7 @@ export const enum Kind {
   HashMap = "hashmap",
   BuiltinFn = "builtin-fn",
   Func = "function",
+  Macro = "macro",
   Atom = "atom",
 }
 
@@ -111,6 +113,13 @@ export interface TyFunc {
   /**
    * 仮引数: inner envで実引数の値にbindされる。
    */
+  params: TySymbol[];
+  body: Ty;
+  closure: EnvChain;
+}
+
+export interface TyMacro {
+  kind: Kind.Macro;
   params: TySymbol[];
   body: Ty;
   closure: EnvChain;
