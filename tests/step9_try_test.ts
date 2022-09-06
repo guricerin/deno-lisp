@@ -43,3 +43,33 @@ Deno.test(`apply function with core functions`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });
+
+Deno.test(`apply function with user functions`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`map function`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`symbol and keyword functions`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(symbol? :abc)`, env), `false`);
+  assertEquals(evalHelper(`(symbol? 'abc)`, env), `true`);
+  assertEquals(evalHelper(`(symbol? "abc")`, env), `false`);
+  assertEquals(evalHelper(`(symbol? (symbol "abc"))`, env), `true`);
+  assertEquals(evalHelper(`(keyword? :abc)`, env), `true`);
+  assertEquals(evalHelper(`(keyword? 'abc)`, env), `false`);
+  assertEquals(evalHelper(`(keyword? "abc")`, env), `false`);
+  assertEquals(evalHelper(`(keyword? "")`, env), `false`);
+  assertEquals(evalHelper(`(keyword? (keyword "abc"))`, env), `true`);
+  assertEquals(evalHelper(`(symbol "abc")`, env), `abc`);
+  assertEquals(evalHelper(`(keyword "abc")`, env), `:abc`);
+});
+
+Deno.test(`map function`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
