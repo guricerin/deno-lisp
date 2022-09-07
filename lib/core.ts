@@ -168,22 +168,40 @@ function makeBuiltinEnv(): Env {
       );
     }
     const res = mergeHashMap(map, rem);
-    console.log(dumpMap(res));
     return res;
   });
   builtin("get", (...args: Ty[]): Ty => {
     const [map, key] = args;
     if (map.kind !== Kind.HashMap) {
-      throw new Error(
-        `unexpected expr type: ${map.kind}, 'get' expected hashmap as 1st arg.`,
-      );
+      return kNil;
     }
     if (key.kind !== Kind.String && key.kind !== Kind.Keyword) {
       throw new Error(
         `unexpected expr type: ${key.kind}, 'get' expected string or keyword as 2nd arg.`,
       );
     }
-    return kNil; // TODO
+    return getValue(map, key);
+  });
+  builtin("contains?", (...args: Ty[]): Ty => {
+    const [map, key] = args;
+    if (map.kind !== Kind.HashMap) {
+      throw new Error(
+        `unexpected expr type: ${key.kind}, 'contains?' expected hashmap as 1st arg.`,
+      );
+    }
+    if (key.kind !== Kind.String && key.kind !== Kind.Keyword) {
+      throw new Error(
+        `unexpected expr type: ${key.kind}, 'contains?' expected string or keyword as 2nd arg.`,
+      );
+    }
+    const res = (() => {
+      if (getValue(map, key).kind === Kind.Nil) {
+        return false;
+      } else {
+        return true;
+      }
+    })();
+    return makeBool(res);
   });
   builtin("sequential?", (...args: Ty[]): Ty => {
     const [x] = args;

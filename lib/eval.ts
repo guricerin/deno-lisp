@@ -222,8 +222,12 @@ function evalExpr(expr: Ty, envChain: EnvChain): Ty {
     }
     case Kind.HashMap: {
       const ls: Ty[] = [];
-      for (const [k, v] of expr.map.entries()) {
-        ls.push(k);
+      for (const [k, v] of expr.strMap.entries()) {
+        ls.push(makeString(k));
+        ls.push(evalAst(v, envChain));
+      }
+      for (const [k, v] of expr.keywordMap.entries()) {
+        ls.push(makeKeyword(k));
         ls.push(evalAst(v, envChain));
       }
       return makeHashMap(ls);

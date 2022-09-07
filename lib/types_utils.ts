@@ -101,7 +101,8 @@ export function makeVector(list: Ty[]): TyVector {
 export function makeHashMap(list: Ty[]): TyHashMap {
   const res: TyHashMap = {
     kind: Kind.HashMap,
-    map: new Map(),
+    strMap: new Map(),
+    keywordMap: new Map(),
   };
 
   while (list.length > 0) {
@@ -112,11 +113,11 @@ export function makeHashMap(list: Ty[]): TyHashMap {
     }
     switch (key.kind) {
       case Kind.String: {
-        res.map.set(key, val);
+        res.strMap.set(key.val, val);
         break;
       }
       case Kind.Keyword: {
-        res.map.set(key, val);
+        res.keywordMap.set(key.name, val);
         break;
       }
       default: {
@@ -132,8 +133,11 @@ export function makeHashMap(list: Ty[]): TyHashMap {
 
 export function mergeHashMap(mp: TyHashMap, ls: Ty[]): TyHashMap {
   const other = makeHashMap(ls);
-  for (const [k, v] of mp.map.entries()) {
-    other.map.set(k, v);
+  for (const [k, v] of mp.strMap.entries()) {
+    other.strMap.set(k, v);
+  }
+  for (const [k, v] of mp.keywordMap.entries()) {
+    other.keywordMap.set(k, v);
   }
   return other;
 }
@@ -141,7 +145,10 @@ export function mergeHashMap(mp: TyHashMap, ls: Ty[]): TyHashMap {
 // デバッグ用
 export function dumpMap(mp: TyHashMap): string {
   let res = "";
-  for (const [k, v] of mp.map.entries()) {
+  for (const [k, v] of mp.strMap.entries()) {
+    res += `${k}: ${tyToString(v, true)}, `;
+  }
+  for (const [k, v] of mp.keywordMap.entries()) {
     res += `${k}: ${tyToString(v, true)}, `;
   }
   return res;
@@ -164,15 +171,15 @@ export function dumpEnv(envChain: EnvChain): string {
 }
 
 export function getValue(mp: TyHashMap, key: TyString | TyKeyword): Ty {
-  return kNil;
-  // const k = (() => {
-  //   if (key.kind === Kind.String) {
-  //     return key.val;
-  //   } else {
-  //     return `:${key.name}`;
-  //   }
-  // })();
-  // return mp.map.get(k) ?? kNil;
+  const res = (() => {
+    switch (key.kind) {
+      case Kind.String:
+        return mp.strMap.get(key.val);
+      case Kind.Keyword:
+        return mp.keywordMap.get(key.name);
+    }
+  })();
+  return res ?? kNil;
 }
 
 export function resolveSymbol(
@@ -346,8 +353,12 @@ export function tyToString(ty: Ty, readably: boolean): string {
     }
     case Kind.HashMap: {
       const mp: Ty[] = [];
-      ty.map.forEach((v, k) => {
-        mp.push(k);
+      ty.strMap.forEach((v, k) => {
+        mp.push(makeString(k));
+        mp.push(v);
+      });
+      ty.keywordMap.forEach((v, k) => {
+        mp.push(makeKeyword(k));
         mp.push(v);
       });
       const content = mp.map((x) => tyToString(x, readably));

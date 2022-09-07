@@ -115,13 +115,18 @@ Deno.test(`hash-maps`, () => {
     evalHelper(`(get (assoc (assoc {"a" 1 } "b" 2) "c" 3) "a")`, env),
     `1`,
   );
-  assertEquals(evalHelper(``, env), ``);
-  assertEquals(evalHelper(``, env), ``);
-  assertEquals(evalHelper(``, env), ``);
-  assertEquals(evalHelper(``, env), ``);
-  assertEquals(evalHelper(``, env), ``);
-  assertEquals(evalHelper(``, env), ``);
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(def! hm1 (hash-map))`, env), `{}`);
+  assertEquals(evalHelper(`(map? hm1)`, env), `true`);
+  assertEquals(evalHelper(`(map? 1)`, env), `false`);
+  assertEquals(evalHelper(`(map? "abc")`, env), `false`);
+  assertEquals(evalHelper(`(get nil "a")`, env), `nil`);
+  assertEquals(evalHelper(`(get hm1 "a")`, env), `nil`);
+  assertEquals(evalHelper(`(contains? hm1 "a")`, env), `false`);
+  assertEquals(evalHelper(`(def! hm2 (assoc hm1 "a" 1))`, env), `{"a" 1}`);
+  assertEquals(evalHelper(`(get hm1 "a")`, env), `nil`);
+  assertEquals(evalHelper(`(contains? hm1 "a")`, env), `false`);
+  assertEquals(evalHelper(`(get hm2 "a")`, env), `1`);
+  assertEquals(evalHelper(`(contains? hm2 "a")`, env), `true`);
 });
 
 Deno.test(`hash-maps`, () => {

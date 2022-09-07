@@ -82,11 +82,10 @@ export interface TyVector {
   list: Ty[];
 }
 
-export type TyKey = TyString | TyKeyword;
-
 export interface TyHashMap {
   kind: Kind.HashMap;
-  map: Map<TyKey, Ty>;
+  strMap: Map<string, Ty>;
+  keywordMap: Map<string, Ty>;
 }
 
 export type Env = Map<string, Ty>;
