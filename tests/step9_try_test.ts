@@ -143,5 +143,21 @@ Deno.test(`hash-maps`, () => {
 
 Deno.test(`keywords as hash-map keys`, () => {
   const env = makeEnvChain();
+  assertEquals(evalHelper(`(get {:abc 123} :abc)`, env), `123`);
+  assertEquals(evalHelper(`(contains? {:abc 123} :abc)`, env), `true`);
+  assertEquals(evalHelper(`(contains? {:abcd 123} :abc)`, env), `false`);
+  assertEquals(evalHelper(`(assoc {} :bcd 234)`, env), `{:bcd 234}`);
+  assertEquals(
+    evalHelper(`(keyword? (nth (keys {:abc 123 :def 456}) 0))`, env),
+    `true`,
+  );
+  assertEquals(
+    evalHelper(`(keyword? (nth (vals {"a" :abc "b" :def}) 0))`, env),
+    `true`,
+  );
+});
+
+Deno.test(`whether assoc updates properly`, () => {
+  const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });
