@@ -147,6 +147,36 @@ export function mergeHashMap(mp: TyHashMap, ls: Ty[]): TyHashMap {
   return other;
 }
 
+export function deleteKeys(mp: TyHashMap, keys: Ty[]): TyHashMap {
+  const clone = (m: TyHashMap): TyHashMap => {
+    return {
+      kind: Kind.HashMap,
+      strMap: new Map(m.strMap),
+      keywordMap: new Map(m.keywordMap),
+    };
+  };
+
+  const other = clone(mp);
+  keys.forEach((l) => {
+    switch (l.kind) {
+      case Kind.String: {
+        other.strMap.delete(l.val);
+        break;
+      }
+      case Kind.Keyword: {
+        other.keywordMap.delete(l.name);
+        break;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${l.kind}, 'deleteKeys' expeced string or keyword list as 2nd arg.`,
+        );
+      }
+    }
+  });
+  return other;
+}
+
 export function getValue(mp: TyHashMap, key: TyString | TyKeyword): Ty {
   const res = (() => {
     switch (key.kind) {

@@ -1,6 +1,7 @@
 import { Env, EnvChain, kFalse, Kind, kNil, kTrue, Ty } from "./types.ts";
 import {
   bindArgs,
+  deleteKeys,
   dumpMap,
   equal,
   getKeys,
@@ -169,8 +170,16 @@ function makeBuiltinEnv(): Env {
         `unexpected expr type: ${map.kind}, 'assoc' expected hashmap as 1st arg.`,
       );
     }
-    const res = mergeHashMap(map, rem);
-    return res;
+    return mergeHashMap(map, rem);
+  });
+  builtin("dissoc", (...args: Ty[]): Ty => {
+    const [map, ...keys] = args;
+    if (map.kind !== Kind.HashMap) {
+      throw new Error(
+        `unexpected expr type: ${map.kind}, 'dissoc' expected hashmap as 1st arg.`,
+      );
+    }
+    return deleteKeys(map, keys);
   });
   builtin("get", (...args: Ty[]): Ty => {
     const [map, key] = args;

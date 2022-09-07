@@ -210,3 +210,49 @@ Deno.test(`extra function arguments as Mal List (bypassing TCO with apply)`, () 
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });
+
+Deno.test(`throwing a hash-map`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`try* without catch*`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`throwing non-strings`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`dissoc`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(def! hm1 (hash-map))`, env), `{}`);
+  assertEquals(evalHelper(`(def! hm2 (assoc hm1 "a" 1))`, env), `{"a" 1}`);
+  evalHelper(`(def! hm3 (assoc hm2 "b" 2))`, env);
+  assertEquals(evalHelper(`(count (keys hm3))`, env), `2`);
+  assertEquals(evalHelper(`(count (vals hm3))`, env), `2`);
+  assertEquals(evalHelper(`(dissoc hm3 "a")`, env), `{"b" 2}`);
+  assertEquals(evalHelper(`(dissoc hm3 "a" "b")`, env), `{}`);
+  assertEquals(evalHelper(`(dissoc hm3 "a" "b" "c")`, env), `{}`);
+  assertEquals(evalHelper(`(count (keys hm3))`, env), `2`);
+  assertEquals(
+    evalHelper(`(dissoc {:cde 345 :fgh 456} :cde)`, env),
+    `{:fgh 456}`,
+  );
+  assertEquals(
+    evalHelper(`(dissoc {:cde nil :fgh 456} :cde)`, env),
+    `{:fgh 456}`,
+  );
+});
+
+Deno.test(`equality of hash-maps`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`hashmaps don't alter function ast`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
