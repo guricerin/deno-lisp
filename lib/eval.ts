@@ -1,22 +1,11 @@
-import {
-  Env,
-  EnvChain,
-  Kind,
-  kNil,
-  Ty,
-  TyFunc,
-  TyList,
-  TyVector,
-} from "./types.ts";
+import { EnvChain, Kind, kNil, Ty, TyList, TyVector } from "./types.ts";
 import {
   bindArgs,
-  dumpEnv,
   makeEnv,
   makeFunc,
   makeHashMap,
   makeKeyword,
   makeList,
-  makeMacro,
   makeString,
   makeSymbol,
   makeVector,
@@ -24,7 +13,6 @@ import {
   storeKeyVal,
   toMacro,
   tyToBool,
-  tyToString,
 } from "./types_utils.ts";
 
 export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {

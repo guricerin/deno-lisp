@@ -3,6 +3,8 @@ import {
   bindArgs,
   dumpMap,
   equal,
+  getKeys,
+  getVals,
   getValue,
   makeAtom,
   makeBool,
@@ -202,6 +204,24 @@ function makeBuiltinEnv(): Env {
       }
     })();
     return makeBool(res);
+  });
+  builtin("keys", (...args: Ty[]): Ty => {
+    const [map] = args;
+    if (map.kind !== Kind.HashMap) {
+      throw new Error(
+        `unexpected expr type: ${map.kind}, 'keys' expected hashmap as 1st arg.`,
+      );
+    }
+    return getKeys(map);
+  });
+  builtin("vals", (...args: Ty[]): Ty => {
+    const [map] = args;
+    if (map.kind !== Kind.HashMap) {
+      throw new Error(
+        `unexpected expr type: ${map.kind}, 'keys' expected hashmap as 1st arg.`,
+      );
+    }
+    return getVals(map);
   });
   builtin("sequential?", (...args: Ty[]): Ty => {
     const [x] = args;

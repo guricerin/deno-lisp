@@ -127,9 +127,21 @@ Deno.test(`hash-maps`, () => {
   assertEquals(evalHelper(`(contains? hm1 "a")`, env), `false`);
   assertEquals(evalHelper(`(get hm2 "a")`, env), `1`);
   assertEquals(evalHelper(`(contains? hm2 "a")`, env), `true`);
+
+  // Clojure returns nil but this breaks mal impl
+  assertEquals(evalHelper(`(keys hm1)`, env), `()`);
+  assertEquals(evalHelper(`(= () (keys hm1))`, env), `true`);
+  assertEquals(evalHelper(`(keys hm2)`, env), `("a")`);
+  assertEquals(evalHelper(`(keys {"1" 1})`, env), `("1")`);
+
+  // Clojure returns nil but this breaks mal impl
+  assertEquals(evalHelper(`(vals hm1)`, env), `()`);
+  assertEquals(evalHelper(`(= () (vals hm1))`, env), `true`);
+  assertEquals(evalHelper(`(vals hm2)`, env), `(1)`);
+  assertEquals(evalHelper(`(count (keys (assoc hm2 "b" 2 "c" 3)))`, env), `3`);
 });
 
-Deno.test(`hash-maps`, () => {
+Deno.test(`keywords as hash-map keys`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });

@@ -182,6 +182,28 @@ export function getValue(mp: TyHashMap, key: TyString | TyKeyword): Ty {
   return res ?? kNil;
 }
 
+export function getKeys(mp: TyHashMap): TyList {
+  const res = [];
+  for (const k of mp.strMap.keys()) {
+    res.push(makeString(k));
+  }
+  for (const k of mp.keywordMap.keys()) {
+    res.push(makeKeyword(k));
+  }
+  return makeList(res);
+}
+
+export function getVals(mp: TyHashMap): TyList {
+  const res = [];
+  for (const v of mp.strMap.values()) {
+    res.push(v);
+  }
+  for (const v of mp.keywordMap.values()) {
+    res.push(v);
+  }
+  return makeList(res);
+}
+
 export function resolveSymbol(
   sym: TySymbol,
   envChain: EnvChain,
