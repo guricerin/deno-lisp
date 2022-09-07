@@ -134,40 +134,17 @@ export function makeHashMap(list: Ty[]): TyHashMap {
 export function mergeHashMap(mp: TyHashMap, ls: Ty[]): TyHashMap {
   const other = makeHashMap(ls);
   for (const [k, v] of mp.strMap.entries()) {
-    other.strMap.set(k, v);
+    // keyが重複する場合はotherを優先。
+    if (!other.strMap.has(k)) {
+      other.strMap.set(k, v);
+    }
   }
   for (const [k, v] of mp.keywordMap.entries()) {
-    other.keywordMap.set(k, v);
+    if (!other.keywordMap.has(k)) {
+      other.keywordMap.set(k, v);
+    }
   }
   return other;
-}
-
-// デバッグ用
-export function dumpMap(mp: TyHashMap): string {
-  let res = "";
-  for (const [k, v] of mp.strMap.entries()) {
-    res += `${k}: ${tyToString(v, true)}, `;
-  }
-  for (const [k, v] of mp.keywordMap.entries()) {
-    res += `${k}: ${tyToString(v, true)}, `;
-  }
-  return res;
-}
-
-export function makeEnv(): Env {
-  return new Map<string, Ty>();
-}
-
-// デバッグ用
-export function dumpEnv(envChain: EnvChain): string {
-  let res = "";
-  for (let i = 0; i < envChain.length; i++) {
-    for (const k of envChain[i].keys()) {
-      res += `${k}, `;
-    }
-    res += "\n";
-  }
-  return res;
 }
 
 export function getValue(mp: TyHashMap, key: TyString | TyKeyword): Ty {
@@ -202,6 +179,34 @@ export function getVals(mp: TyHashMap): TyList {
     res.push(v);
   }
   return makeList(res);
+}
+
+// デバッグ用
+export function dumpMap(mp: TyHashMap): string {
+  let res = "";
+  for (const [k, v] of mp.strMap.entries()) {
+    res += `${k}: ${tyToString(v, true)}, `;
+  }
+  for (const [k, v] of mp.keywordMap.entries()) {
+    res += `${k}: ${tyToString(v, true)}, `;
+  }
+  return res;
+}
+
+export function makeEnv(): Env {
+  return new Map<string, Ty>();
+}
+
+// デバッグ用
+export function dumpEnv(envChain: EnvChain): string {
+  let res = "";
+  for (let i = 0; i < envChain.length; i++) {
+    for (const k of envChain[i].keys()) {
+      res += `${k}, `;
+    }
+    res += "\n";
+  }
+  return res;
 }
 
 export function resolveSymbol(

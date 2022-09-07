@@ -159,5 +159,13 @@ Deno.test(`keywords as hash-map keys`, () => {
 
 Deno.test(`whether assoc updates properly`, () => {
   const env = makeEnvChain();
+  evalHelper(`(def! hm4 (assoc {:a 1 :b 2} :a 3 :c 1))`, env);
+  assertEquals(evalHelper(`(get hm4 :a)`, env), `3`);
+  assertEquals(evalHelper(`(get hm4 :b)`, env), `2`);
+  assertEquals(evalHelper(`(get hm4 :c)`, env), `1`);
+});
+
+Deno.test(`whether assoc updates properly`, () => {
+  const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });
