@@ -165,7 +165,48 @@ Deno.test(`whether assoc updates properly`, () => {
   assertEquals(evalHelper(`(get hm4 :c)`, env), `1`);
 });
 
-Deno.test(`whether assoc updates properly`, () => {
+Deno.test(`nil as hash-map values`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(contains? {:abc nil} :abc)`, env), `true`);
+  assertEquals(evalHelper(`(assoc {} :bcd nil)`, env), `{:bcd nil}`);
+});
+
+Deno.test(`Additional str and pr-str tests`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(str "A" {:abc "val"} "Z")`, env), `"A{:abc val}Z"`);
+  assertEquals(
+    evalHelper(`(str true "." false "." nil "." :keyw "." 'symb)`, env),
+    `"true.false.nil.:keyw.symb"`,
+  );
+  assertEquals(
+    evalHelper(`(pr-str "A" {:abc "val"} "Z")`, env),
+    String.raw`"\"A\" {:abc \"val\"} \"Z\""`,
+  );
+  assertEquals(
+    evalHelper(`(pr-str true "." false "." nil "." :keyw "." 'symb)`, env),
+    String.raw`"true \".\" false \".\" nil \".\" :keyw \".\" symb"`,
+  );
+  evalHelper(`(def! s (str {:abc "val1" :def "val2"}))`, env);
+  assertEquals(
+    evalHelper(
+      String
+        .raw`(cond (= s "{:abc val1 :def val2}") true (= s "{:def val2 :abc val1}") true)`,
+      env,
+    ),
+    `true`,
+  );
+  evalHelper(`(def! p (pr-str {:abc "val1" :def "val2"}))`, env);
+  assertEquals(
+    evalHelper(
+      String
+        .raw`(cond (= p "{:abc \"val1\" :def \"val2\"}") true (= p "{:def \"val2\" :abc \"val1\"}") true)`,
+      env,
+    ),
+    `true`,
+  );
+});
+
+Deno.test(`extra function arguments as Mal List (bypassing TCO with apply)`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });

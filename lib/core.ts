@@ -196,11 +196,12 @@ function makeBuiltinEnv(): Env {
         `unexpected expr type: ${key.kind}, 'contains?' expected string or keyword as 2nd arg.`,
       );
     }
+    const k = getKeys(map).list.find((v) => equal(v, key));
     const res = (() => {
-      if (getValue(map, key).kind === Kind.Nil) {
-        return false;
-      } else {
+      if (k) {
         return true;
+      } else {
+        return false;
       }
     })();
     return makeBool(res);
