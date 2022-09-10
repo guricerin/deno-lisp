@@ -366,6 +366,12 @@ Deno.test(`equality of hash-maps`, () => {
   );
   assertEquals(evalHelper(`(= {} [])`, env), `false`);
   assertEquals(evalHelper(`(= [] {})`, env), `false`);
+
+  assertEquals(evalHelper(`(keyword :abc)`, env), `:abc`);
+  assertEquals(
+    evalHelper(`(keyword? (first (keys {":abc" 123 ":def" 456})))`, env),
+    `false`,
+  );
 });
 
 Deno.test(`hashmaps don't alter function ast`, () => {

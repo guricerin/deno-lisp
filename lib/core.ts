@@ -107,6 +107,9 @@ function makeBuiltinEnv(): Env {
       case Kind.String: {
         return makeKeyword(x.val);
       }
+      case Kind.Keyword: {
+        return x;
+      }
       default: {
         throw new Error(
           `unexpected expr type: ${x.kind}, 'keyword' expected string.`,
