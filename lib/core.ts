@@ -28,6 +28,7 @@ export function initEnvChain(): EnvChain {
   const defInMal = ((code: string) => {
     evalAst(parse(code), res);
   });
+  defInMal(`(def! *host-language* "TypeScript")`);
   defInMal("(def! not (fn* (a) (if a false true)))");
   defInMal(
     '(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))',

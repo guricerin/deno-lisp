@@ -52,6 +52,7 @@ function rep(s: string, envChain: EnvChain) {
       console.error(`Error: ${err.message}`);
     }
   } else {
+    evalLisp(read(`(println (str "Mal [" *host-language* "]"))`), envChain);
     while (true) {
       const line = prompt("user>");
       if (!line) {
