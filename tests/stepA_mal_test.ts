@@ -74,7 +74,11 @@ Deno.test(`string? function`, () => {
 
 Deno.test(`number? function`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(number? 123)`, env), `true`);
+  assertEquals(evalHelper(`(number? -1)`, env), `true`);
+  assertEquals(evalHelper(`(number? nil)`, env), `false`);
+  assertEquals(evalHelper(`(number? false)`, env), `false`);
+  assertEquals(evalHelper(`(number? "123")`, env), `false`);
 });
 
 Deno.test(`fn? function`, () => {

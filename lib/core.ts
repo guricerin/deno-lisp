@@ -128,6 +128,11 @@ function makeBuiltinEnv(): Env {
     const res = x.kind === Kind.Keyword;
     return makeBool(res);
   });
+  builtin("number?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Number;
+    return makeBool(res);
+  });
   builtin("pr-str", (...args: Ty[]): Ty => {
     const s = args.map((x) => {
       return tyToString(x, true);
