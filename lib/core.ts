@@ -420,6 +420,20 @@ function makeBuiltinEnv(): Env {
       }
     }
   });
+  builtin("readline", (...args: Ty[]): Ty => {
+    const [x] = args;
+    if (x.kind !== Kind.String) {
+      throw new Error(
+        `unexpected expr type: ${x.kind}, 'readline' expected string.`,
+      );
+    }
+    const line = prompt(x.val);
+    if (!line) {
+      return kNil;
+    } else {
+      return makeString(line);
+    }
+  });
   builtin("eval", (...args: Ty[]): Ty => {
     const [x] = args;
     return evalAst(x, [env]);
