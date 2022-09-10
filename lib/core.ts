@@ -499,6 +499,32 @@ function makeBuiltinEnv(): Env {
       }
     }
   });
+  builtin("seq", (...args: Ty[]): Ty => {
+    const [seq] = args;
+    switch (seq.kind) {
+      case Kind.List: {
+        return seq.list.length === 0 ? kNil : seq;
+      }
+      case Kind.Vector: {
+        return seq.list.length === 0 ? kNil : makeList(seq.list);
+      }
+      case Kind.String: {
+        if (seq.val === "") {
+          return kNil;
+        }
+        const s = [...seq.val].map((x) => makeString(x));
+        return makeList(s);
+      }
+      case Kind.Nil: {
+        return seq;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${seq.kind}, 'seq' expected list or vector or string or nil.`,
+        );
+      }
+    }
+  });
   builtin("meta", (...args: Ty[]): Ty => {
     const [x] = args;
     switch (x.kind) {

@@ -164,5 +164,15 @@ Deno.test(`conj function`, () => {
 
 Deno.test(`seq function`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(seq "abc")`, env), `("a" "b" "c")`);
+  assertEquals(
+    evalHelper(`(apply str (seq "this is a test"))`, env),
+    `"this is a test"`,
+  );
+  assertEquals(evalHelper(`(seq '(2 3 4))`, env), `(2 3 4)`);
+  assertEquals(evalHelper(`(seq [2 3 4])`, env), `(2 3 4)`);
+  assertEquals(evalHelper(`(seq "")`, env), `nil`);
+  assertEquals(evalHelper(`(seq '())`, env), `nil`);
+  assertEquals(evalHelper(`(seq [])`, env), `nil`);
+  assertEquals(evalHelper(`(seq nil)`, env), `nil`);
 });
