@@ -90,12 +90,18 @@ Deno.test(`builtin functions`, () => {
 
 Deno.test(`apply function with core functions`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(apply + (list 2 3))`, env), `5`);
+  assertEquals(evalHelper(`(apply + 4 (list 5))`, env), `9`);
+  assertEquals(evalHelper(`(apply prn (list 1 2 "3" (list)))`, env), `nil`);
+  assertEquals(evalHelper(`(apply prn 1 2 (list "3" (list)))`, env), `nil`);
+  assertEquals(evalHelper(`(apply list (list))`, env), `()`);
+  assertEquals(evalHelper(`(apply symbol? (list (quote two)))`, env), `true`);
 });
 
 Deno.test(`apply function with user functions`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(apply (fn* (a b) (+ a b)) (list 2 3))`, env), `5`);
+  assertEquals(evalHelper(`(apply (fn* (a b) (+ a b)) 4 (list 5))`, env), `9`);
 });
 
 Deno.test(`map function`, () => {
