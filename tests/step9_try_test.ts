@@ -376,5 +376,8 @@ Deno.test(`equality of hash-maps`, () => {
 
 Deno.test(`hashmaps don't alter function ast`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  // shouldn't give an error
+  evalHelper(`(def! bar (fn* [a] {:foo (get a :foo)}))`, env);
+  evalHelper(`(bar {:foo (fn* [x] x)})`, env);
+  assertEquals(evalHelper(`(bar {:foo 3})`, env), `{:foo 3}`);
 });
