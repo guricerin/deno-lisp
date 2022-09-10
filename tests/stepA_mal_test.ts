@@ -1,7 +1,4 @@
-import {
-  assertEquals,
-  assertThrows,
-} from "https://deno.land/std@0.153.0/testing/asserts.ts";
+import { assertEquals } from "https://deno.land/std@0.153.0/testing/asserts.ts";
 import { initEnvChain } from "../lib/core.ts";
 import { evalAst } from "../lib/eval.ts";
 import { parse } from "../lib/reader.ts";

@@ -1,4 +1,4 @@
-import { Kind, Ty, TyList, TyNumber, TyString, TySymbol } from "./types.ts";
+import { Ty, TyList } from "./types.ts";
 import {
   makeHashMap,
   makeKeyword,

@@ -604,6 +604,30 @@ function makeBuiltinEnv(): Env {
     const now = Date.now();
     return makeNumber(now);
   });
+  builtin("ts-eval", (...args: Ty[]): Ty => {
+    const [code] = args;
+    if (code.kind !== Kind.String) {
+      throw new Error(
+        `unexpected expr type: ${code.kind}, 'ts-eval' expected string.`,
+      );
+    }
+    const res = eval(code.val);
+    const ty = typeof res;
+    switch (ty) {
+      case "number": {
+        return makeNumber(res);
+      }
+      case "string": {
+        return makeString(res);
+      }
+      case "boolean": {
+        return makeBool(res);
+      }
+      default: {
+        return kNil;
+      }
+    }
+  });
 
   return env;
 }
