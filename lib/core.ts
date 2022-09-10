@@ -1,4 +1,13 @@
-import { Env, EnvChain, kFalse, Kind, kNil, kTrue, Ty } from "./types.ts";
+import {
+  Env,
+  EnvChain,
+  kFalse,
+  Kind,
+  kNil,
+  kTrue,
+  Ty,
+  TyList,
+} from "./types.ts";
 import {
   assignMeta,
   bindArgs,
@@ -469,6 +478,23 @@ function makeBuiltinEnv(): Env {
       default: {
         throw new Error(
           `unexpected expr type: ${x.kind}, 'slurp' expected string.`,
+        );
+      }
+    }
+  });
+  builtin("conj", (...args: Ty[]): Ty => {
+    const [ls, ...elms] = args;
+    switch (ls.kind) {
+      case Kind.List: {
+        const rev = [...elms];
+        return makeList([...rev.reverse(), ...ls.list]);
+      }
+      case Kind.Vector: {
+        return makeVector([...ls.list, ...elms]);
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${ls.kind}, 'conj' expected list or vector as 1st arg.`,
         );
       }
     }

@@ -147,7 +147,22 @@ Deno.test(`macro? function`, () => {
   assertEquals(evalHelper(`(macro? {})`, env), `false`);
 });
 
-Deno.test(`macro? function`, () => {
+Deno.test(`conj function`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(conj (list) 1)`, env), `(1)`);
+  assertEquals(evalHelper(`(conj (list 1) 2)`, env), `(2 1)`);
+  assertEquals(evalHelper(`(conj (list 2 3) 4)`, env), `(4 2 3)`);
+  assertEquals(evalHelper(`(conj (list 2 3) 4 5 6)`, env), `(6 5 4 2 3)`);
+  assertEquals(evalHelper(`(conj (list 1) (list 2 3))`, env), `((2 3) 1)`);
+
+  assertEquals(evalHelper(`(conj [] 1)`, env), `[1]`);
+  assertEquals(evalHelper(`(conj [1] 2)`, env), `[1 2]`);
+  assertEquals(evalHelper(`(conj [2 3] 4)`, env), `[2 3 4]`);
+  assertEquals(evalHelper(`(conj [2 3] 4 5 6)`, env), `[2 3 4 5 6]`);
+  assertEquals(evalHelper(`(conj [1] [2 3])`, env), `[1 [2 3]]`);
+});
+
+Deno.test(`seq function`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });
