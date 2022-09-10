@@ -107,9 +107,9 @@ function parseForm(reader: Reader): Ty {
 
 function parseMeta(reader: Reader): Ty {
   reader.next(); // drop '^'
-  const metaDate = parseForm(reader);
-  const fn = parseForm(reader);
-  return makeList([makeSymbol("with-meta"), fn, metaDate]);
+  const metaData = parseForm(reader);
+  const structure = parseForm(reader);
+  return makeList([makeSymbol("with-meta"), structure, metaData]);
 }
 
 function parseCollection(

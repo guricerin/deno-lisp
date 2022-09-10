@@ -48,12 +48,50 @@ Deno.test(`presence of optional functions`, () => {
 
 Deno.test(`metadata on mal functions`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(meta (fn* (a) a))`, env), `nil`);
+  assertEquals(
+    evalHelper(`(meta (with-meta (fn* (a) a) {"b" 1}))`, env),
+    `{"b" 1}`,
+  );
+  assertEquals(
+    evalHelper(`(meta (with-meta (fn* (a) a) "abc"))`, env),
+    `"abc"`,
+  );
+  evalHelper(`(def! l-wm (with-meta (fn* (a) a) {"b" 2}))`, env);
+  assertEquals(evalHelper(`(meta l-wm)`, env), `{"b" 2}`);
+  assertEquals(
+    evalHelper(`(meta (with-meta l-wm {"new_meta" 123}))`, env),
+    `{"new_meta" 123}`,
+  );
+  assertEquals(evalHelper(`(meta l-wm)`, env), `{"b" 2}`);
+  evalHelper(`(def! f-wm (with-meta (fn* [a] (+ 1 a)) {"abc" 1}))`, env);
+  assertEquals(evalHelper(`(meta f-wm)`, env), `{"abc" 1}`);
+  assertEquals(
+    evalHelper(`(meta (with-meta f-wm {"new_meta" 123}))`, env),
+    `{"new_meta" 123}`,
+  );
+  assertEquals(evalHelper(`(meta f-wm)`, env), `{"abc" 1}`);
+  evalHelper(`(def! f-wm2 ^{"abc" 1} (fn* [a] (+ 1 a)))`, env);
+  assertEquals(evalHelper(`(meta f-wm2)`, env), `{"abc" 1}`);
 });
 
 Deno.test(`Meta of native functions should return nil (not fail)`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(meta +)`, env), `nil`);
+  evalHelper(
+    `(def! gen-plusX (fn* (x) (with-meta (fn* (b) (+ x b)) {"meta" 1})))`,
+    env,
+  );
+  evalHelper(`(def! plus7 (gen-plusX 7))`, env);
+  evalHelper(`(def! plus8 (gen-plusX 8))`, env);
+  assertEquals(evalHelper(`(plus7 8)`, env), `15`);
+  assertEquals(evalHelper(`(meta plus7)`, env), `{"meta" 1}`);
+  assertEquals(evalHelper(`(meta plus8)`, env), `{"meta" 1}`);
+  assertEquals(
+    evalHelper(`(meta (with-meta plus7 {"meta" 2}))`, env),
+    `{"meta" 2}`,
+  );
+  assertEquals(evalHelper(`(meta plus8)`, env), `{"meta" 1}`);
 });
 
 Deno.test(`Make sure closures and metadata co-exist`, () => {
