@@ -135,5 +135,19 @@ Deno.test(`fn? function`, () => {
 
 Deno.test(`macro? function`, () => {
   const env = makeEnvChain();
+  evalHelper(
+    `(def! add1 (fn* (x) (+ x 1)))`,
+    env,
+  );
+  assertEquals(evalHelper(`(macro? cond)`, env), `true`);
+  assertEquals(evalHelper(`(macro? +)`, env), `false`);
+  assertEquals(evalHelper(`(macro? add1)`, env), `false`);
+  assertEquals(evalHelper(`(macro? "+")`, env), `false`);
+  assertEquals(evalHelper(`(macro? :+)`, env), `false`);
+  assertEquals(evalHelper(`(macro? {})`, env), `false`);
+});
+
+Deno.test(`macro? function`, () => {
+  const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });

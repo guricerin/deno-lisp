@@ -139,6 +139,11 @@ function makeBuiltinEnv(): Env {
     const res = x.kind === Kind.Func || x.kind === Kind.BuiltinFn;
     return makeBool(res);
   });
+  builtin("macro?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Macro;
+    return makeBool(res);
+  });
   builtin("pr-str", (...args: Ty[]): Ty => {
     const s = args.map((x) => {
       return tyToString(x, true);
