@@ -150,6 +150,45 @@ export function evalAst(ast: Ty | undefined, envChain: EnvChain): Ty {
             const [, q] = ast.list;
             return macroExpand(q, envChain);
           }
+          case "try*": {
+            const tryAst = ast.list[1];
+            try {
+              return evalAst(tryAst, envChain);
+            } catch (e) {
+              if (ast.list.length < 3) {
+                throw e;
+              }
+              const catchAst = ast.list[2];
+              if (
+                catchAst.kind !== Kind.List && catchAst.kind !== Kind.Vector
+              ) {
+                throw new Error(
+                  `unexpected expr type: ${catchAst.kind}, 'try*' expected list or vector as 2nd arg.`,
+                );
+              }
+              const catchSym = catchAst.list[0];
+              if (catchSym.kind === Kind.Symbol && catchSym.name === "catch*") {
+                const errSym = catchAst.list[1];
+                if (errSym.kind !== Kind.Symbol) {
+                  throw new Error(
+                    `unexpected expr type: ${errSym.kind}, expected symbol.`,
+                  );
+                }
+                const err = (() => {
+                  if (e instanceof Error) {
+                    return makeString((e as Error).message);
+                  } else {
+                    return e as Ty;
+                  }
+                })();
+                const nextAst = catchAst.list[2];
+                storeKeyVal(errSym, err, envChain);
+                return evalAst(nextAst, envChain);
+              } else {
+                throw e;
+              } // if (catchSym.kind === Kind.Symbol && catchSym.name === "catch*")
+            } // catch
+          }
           default: {
             break;
           }

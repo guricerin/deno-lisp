@@ -50,7 +50,7 @@ function rep(s: string, envChain: EnvChain) {
       evalLisp(read(code), envChain);
     } catch (e) {
       const err = e as Error;
-      console.error(err.message);
+      console.error(`Error: ${err.message}`);
     }
   } else {
     for await (const line of stdio.readLines(Deno.stdin)) {
@@ -58,7 +58,7 @@ function rep(s: string, envChain: EnvChain) {
         rep(line, envChain);
       } catch (e) {
         const err = e as Error;
-        console.error(err.message);
+        console.error(`Error: ${err.message}`);
       }
     }
   }

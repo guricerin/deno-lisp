@@ -2,7 +2,6 @@ import { Env, EnvChain, kFalse, Kind, kNil, kTrue, Ty } from "./types.ts";
 import {
   bindArgs,
   deleteKeys,
-  dumpMap,
   equal,
   getKeys,
   getVals,
@@ -60,6 +59,10 @@ function makeBuiltinEnv(): Env {
   builtin("=", (...args: Ty[]): Ty => {
     const [x, y] = args;
     return makeBool(equal(x, y));
+  });
+  builtin("throw", (...args: Ty[]): Ty => {
+    const [x] = args;
+    throw x;
   });
   builtin("nil?", (...args: Ty[]): Ty => {
     const [x] = args;
@@ -285,6 +288,11 @@ function makeBuiltinEnv(): Env {
     if (i.kind !== Kind.Number) {
       throw new Error(
         `unexpected expr type: ${i.kind}, 'nth' expected number as 2nd arg.`,
+      );
+    }
+    if (ls.list.length <= i.val) {
+      throw new Error(
+        `nth: list.length (${ls.list.length}) is less than ${i.val}.`,
       );
     }
     return ls.list[i.val];

@@ -23,7 +23,48 @@ function evalHelper(code: string, envChain: EnvChain): string {
 
 Deno.test(`try*/catch*`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(try* 123 (catch* e 456))`, env), `123`);
+  assertEquals(
+    evalHelper(`(try* abc (catch* exc (prn "exc is:" exc)))`, env),
+    `nil`,
+  );
+  assertEquals(
+    evalHelper(`(try* (abc 1 2) (catch* exc (prn "exc is:" exc)))`, env),
+    `nil`,
+  );
+});
+
+Deno.test(`Make sure error from core can be caught`, () => {
+  const env = makeEnvChain();
+  assertEquals(
+    evalHelper(`(try* (nth () 1) (catch* exc (prn "exc is:" exc)))`, env),
+    `nil`,
+  );
+  assertEquals(
+    evalHelper(
+      `(try* (throw "my exception") (catch* exc (do (prn "exc:" exc) 7)))`,
+      env,
+    ),
+    `7`,
+  );
+});
+
+Deno.test(`exception handlers get restored correctly`, () => {
+  const env = makeEnvChain();
+  assertEquals(
+    evalHelper(
+      `(try* (do (try* "t1" (catch* e "c1")) (throw "e1")) (catch* e "c2"))`,
+      env,
+    ),
+    `"c2"`,
+  );
+  assertEquals(
+    evalHelper(
+      `(try* (try* (throw "e1") (catch* e (throw "e2"))) (catch* e "c2"))`,
+      env,
+    ),
+    `"c2"`,
+  );
 });
 
 Deno.test(`builtin functions`, () => {
