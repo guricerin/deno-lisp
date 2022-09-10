@@ -1,15 +1,23 @@
-import { Env, EnvChain, Kind, kNil, Ty } from "./types.ts";
+import { Env, EnvChain, kFalse, Kind, kNil, kTrue, Ty } from "./types.ts";
 import {
   bindArgs,
+  deleteKeys,
   equal,
+  getKeys,
+  getVals,
+  getValue,
   makeAtom,
   makeBool,
   makeBuiltinFunc,
   makeEnv,
+  makeHashMap,
+  makeKeyword,
   makeList,
   makeNumber,
   makeString,
+  makeSymbol,
   makeVector,
+  mergeHashMap,
   tyToString,
 } from "./types_utils.ts";
 import { parse } from "./reader.ts";
@@ -52,6 +60,68 @@ function makeBuiltinEnv(): Env {
     const [x, y] = args;
     return makeBool(equal(x, y));
   });
+  builtin("throw", (...args: Ty[]): Ty => {
+    const [x] = args;
+    throw x;
+  });
+  builtin("nil?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    switch (x.kind) {
+      case Kind.Nil:
+        return kTrue;
+      default:
+        return kFalse;
+    }
+  });
+  builtin("true?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Bool && x.val === true;
+    return makeBool(res);
+  });
+  builtin("false?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Bool && x.val === false;
+    return makeBool(res);
+  });
+  builtin("symbol", (...args: Ty[]): Ty => {
+    const [x] = args;
+    switch (x.kind) {
+      case Kind.String: {
+        return makeSymbol(x.val);
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'symbol' expected string.`,
+        );
+      }
+    }
+  });
+  builtin("symbol?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Symbol;
+    return makeBool(res);
+  });
+  builtin("keyword", (...args: Ty[]): Ty => {
+    const [x] = args;
+    switch (x.kind) {
+      case Kind.String: {
+        return makeKeyword(x.val);
+      }
+      case Kind.Keyword: {
+        return x;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'keyword' expected string.`,
+        );
+      }
+    }
+  });
+  builtin("keyword?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Keyword;
+    return makeBool(res);
+  });
   builtin("pr-str", (...args: Ty[]): Ty => {
     const s = args.map((x) => {
       return tyToString(x, true);
@@ -84,6 +154,94 @@ function makeBuiltinEnv(): Env {
   builtin("list?", (...args: Ty[]): Ty => {
     const [x] = args;
     return makeBool(x.kind === Kind.List);
+  });
+  builtin("vector", (...args: Ty[]): Ty => {
+    return makeVector(args);
+  });
+  builtin("vector?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    return makeBool(x.kind === Kind.Vector);
+  });
+  builtin("hash-map", (...args: Ty[]): Ty => {
+    return makeHashMap(args);
+  });
+  builtin("map?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    return makeBool(x.kind === Kind.HashMap);
+  });
+  builtin("assoc", (...args: Ty[]): Ty => {
+    const [map, ...rem] = args;
+    if (map.kind !== Kind.HashMap) {
+      throw new Error(
+        `unexpected expr type: ${map.kind}, 'assoc' expected hashmap as 1st arg.`,
+      );
+    }
+    return mergeHashMap(map, rem);
+  });
+  builtin("dissoc", (...args: Ty[]): Ty => {
+    const [map, ...keys] = args;
+    if (map.kind !== Kind.HashMap) {
+      throw new Error(
+        `unexpected expr type: ${map.kind}, 'dissoc' expected hashmap as 1st arg.`,
+      );
+    }
+    return deleteKeys(map, keys);
+  });
+  builtin("get", (...args: Ty[]): Ty => {
+    const [map, key] = args;
+    if (map.kind !== Kind.HashMap) {
+      return kNil;
+    }
+    if (key.kind !== Kind.String && key.kind !== Kind.Keyword) {
+      throw new Error(
+        `unexpected expr type: ${key.kind}, 'get' expected string or keyword as 2nd arg.`,
+      );
+    }
+    return getValue(map, key);
+  });
+  builtin("contains?", (...args: Ty[]): Ty => {
+    const [map, key] = args;
+    if (map.kind !== Kind.HashMap) {
+      throw new Error(
+        `unexpected expr type: ${key.kind}, 'contains?' expected hashmap as 1st arg.`,
+      );
+    }
+    if (key.kind !== Kind.String && key.kind !== Kind.Keyword) {
+      throw new Error(
+        `unexpected expr type: ${key.kind}, 'contains?' expected string or keyword as 2nd arg.`,
+      );
+    }
+    const k = getKeys(map).list.find((v) => equal(v, key));
+    const res = (() => {
+      if (k) {
+        return true;
+      } else {
+        return false;
+      }
+    })();
+    return makeBool(res);
+  });
+  builtin("keys", (...args: Ty[]): Ty => {
+    const [map] = args;
+    if (map.kind !== Kind.HashMap) {
+      throw new Error(
+        `unexpected expr type: ${map.kind}, 'keys' expected hashmap as 1st arg.`,
+      );
+    }
+    return getKeys(map);
+  });
+  builtin("vals", (...args: Ty[]): Ty => {
+    const [map] = args;
+    if (map.kind !== Kind.HashMap) {
+      throw new Error(
+        `unexpected expr type: ${map.kind}, 'keys' expected hashmap as 1st arg.`,
+      );
+    }
+    return getVals(map);
+  });
+  builtin("sequential?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    return makeBool(x.kind === Kind.List || x.kind === Kind.Vector);
   });
   builtin("cons", (...args: Ty[]): Ty => {
     const [x, y] = args;
@@ -133,6 +291,11 @@ function makeBuiltinEnv(): Env {
     if (i.kind !== Kind.Number) {
       throw new Error(
         `unexpected expr type: ${i.kind}, 'nth' expected number as 2nd arg.`,
+      );
+    }
+    if (ls.list.length <= i.val) {
+      throw new Error(
+        `nth: list.length (${ls.list.length}) is less than ${i.val}.`,
       );
     }
     return ls.list[i.val];
@@ -190,6 +353,58 @@ function makeBuiltinEnv(): Env {
       );
     }
     return makeNumber(x.list.length);
+  });
+  builtin("apply", (...args: Ty[]): Ty => { // (apply F A B (C D)) => (F A B C D)
+    const [fn, ...vars] = args;
+    const ls = vars.slice(-1)[0];
+    if (ls.kind !== Kind.List && ls.kind !== Kind.Vector) {
+      throw new Error(
+        `unexpected expr type: ${ls.kind}, 'apply' expected list or vector as last arg.`,
+      );
+    }
+    const as = vars.slice(0, -1).concat(ls.list);
+    switch (fn.kind) {
+      case Kind.BuiltinFn: {
+        return fn.fn(...as);
+      }
+      case Kind.Func: {
+        const ast = makeList([fn, ...as]);
+        return evalAst(ast, [env]);
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${fn.kind}, 'apply' expected function or built-in-fn as 1st arg.`,
+        );
+      }
+    }
+  });
+  builtin("map", (...args: Ty[]): Ty => {
+    const [fn, ls] = args;
+    if (ls.kind !== Kind.List && ls.kind !== Kind.Vector) {
+      throw new Error(
+        `unexpected expr type: ${ls.kind}, 'map' expected list or vector as 2nd arg.`,
+      );
+    }
+    switch (fn.kind) {
+      case Kind.Func: {
+        const res = ls.list.map((x) => {
+          bindArgs(fn, [x]);
+          return evalAst(fn.body, fn.closure);
+        });
+        return makeList(res);
+      }
+      case Kind.BuiltinFn: {
+        const res = ls.list.map((x) => {
+          return fn.fn(x);
+        });
+        return makeList(res);
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${fn.kind}, 'map' expected function or built-in-fn as 1st arg.`,
+        );
+      }
+    }
   });
   builtin("read-string", (...args: Ty[]): Ty => {
     const [x] = args;

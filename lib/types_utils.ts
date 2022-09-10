@@ -101,7 +101,8 @@ export function makeVector(list: Ty[]): TyVector {
 export function makeHashMap(list: Ty[]): TyHashMap {
   const res: TyHashMap = {
     kind: Kind.HashMap,
-    map: new Map(),
+    strMap: new Map(),
+    keywordMap: new Map(),
   };
 
   while (list.length > 0) {
@@ -112,11 +113,11 @@ export function makeHashMap(list: Ty[]): TyHashMap {
     }
     switch (key.kind) {
       case Kind.String: {
-        res.map.set(key, val);
+        res.strMap.set(key.val, val);
         break;
       }
       case Kind.Keyword: {
-        res.map.set(key, val);
+        res.keywordMap.set(key.name, val);
         break;
       }
       default: {
@@ -127,6 +128,98 @@ export function makeHashMap(list: Ty[]): TyHashMap {
     }
   }
 
+  return res;
+}
+
+export function mergeHashMap(mp: TyHashMap, ls: Ty[]): TyHashMap {
+  const other = makeHashMap(ls);
+  for (const [k, v] of mp.strMap.entries()) {
+    // keyが重複する場合はotherを優先。
+    if (!other.strMap.has(k)) {
+      other.strMap.set(k, v);
+    }
+  }
+  for (const [k, v] of mp.keywordMap.entries()) {
+    if (!other.keywordMap.has(k)) {
+      other.keywordMap.set(k, v);
+    }
+  }
+  return other;
+}
+
+export function deleteKeys(mp: TyHashMap, keys: Ty[]): TyHashMap {
+  const clone = (m: TyHashMap): TyHashMap => {
+    return {
+      kind: Kind.HashMap,
+      strMap: new Map(m.strMap),
+      keywordMap: new Map(m.keywordMap),
+    };
+  };
+
+  const other = clone(mp);
+  keys.forEach((l) => {
+    switch (l.kind) {
+      case Kind.String: {
+        other.strMap.delete(l.val);
+        break;
+      }
+      case Kind.Keyword: {
+        other.keywordMap.delete(l.name);
+        break;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${l.kind}, 'deleteKeys' expeced string or keyword list as 2nd arg.`,
+        );
+      }
+    }
+  });
+  return other;
+}
+
+export function getValue(mp: TyHashMap, key: TyString | TyKeyword): Ty {
+  const res = (() => {
+    switch (key.kind) {
+      case Kind.String:
+        return mp.strMap.get(key.val);
+      case Kind.Keyword:
+        return mp.keywordMap.get(key.name);
+    }
+  })();
+  return res ?? kNil;
+}
+
+export function getKeys(mp: TyHashMap): TyList {
+  const res = [];
+  for (const k of mp.strMap.keys()) {
+    res.push(makeString(k));
+  }
+  for (const k of mp.keywordMap.keys()) {
+    res.push(makeKeyword(k));
+  }
+  return makeList(res);
+}
+
+export function getVals(mp: TyHashMap): TyList {
+  const res = [];
+  for (const v of mp.strMap.values()) {
+    res.push(v);
+  }
+  for (const v of mp.keywordMap.values()) {
+    res.push(v);
+  }
+  return makeList(res);
+}
+
+// デバッグ用
+export function dumpMap(mp: TyHashMap): string {
+  let res = "";
+  for (const [k, v] of mp.strMap.entries()) {
+    res += `${k}: ${tyToString(v, true)}, `;
+  }
+  for (const [k, v] of mp.keywordMap.entries()) {
+    res += `${k}: ${tyToString(v, true)}, `;
+  }
   return res;
 }
 
@@ -255,9 +348,24 @@ export function equal(x: Ty, y: Ty): boolean {
     return equalSeq(x, y);
   } else if (x.kind === Kind.Vector && y.kind === Kind.List) {
     return equalSeq(x, y);
+  } else if (x.kind === Kind.HashMap && y.kind === Kind.HashMap) {
+    return equalMap(x.keywordMap, y.keywordMap) && equalMap(x.strMap, y.strMap);
   }
 
   return false;
+}
+
+function equalMap<K>(x: Map<K, Ty>, y: Map<K, Ty>): boolean {
+  if (x.size !== y.size) {
+    return false;
+  }
+  for (const [k, v] of x) {
+    const vv = y.get(k);
+    if (!vv || !equal(v, vv)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function equalSeq(x: TyList | TyVector, y: TyList | TyVector): boolean {
@@ -317,8 +425,12 @@ export function tyToString(ty: Ty, readably: boolean): string {
     }
     case Kind.HashMap: {
       const mp: Ty[] = [];
-      ty.map.forEach((v, k) => {
-        mp.push(k);
+      ty.strMap.forEach((v, k) => {
+        mp.push(makeString(k));
+        mp.push(v);
+      });
+      ty.keywordMap.forEach((v, k) => {
+        mp.push(makeKeyword(k));
         mp.push(v);
       });
       const content = mp.map((x) => tyToString(x, readably));
