@@ -230,8 +230,26 @@ Deno.test(`metadata on builtin functions`, () => {
   assertEquals(evalHelper(`(meta +)`, env), `nil`);
 });
 
-Deno.test(`time-ms function`, () => {
+Deno.test(`time-ms function`, async () => {
   const env = makeEnvChain();
   // Loading sumdown from computations.mal
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(
+    evalHelper(`(load-file "./tests/mal/computations.mal")`, env),
+    `nil`,
+  );
+  evalHelper(`(def! start-time (time-ms))`, env);
+  assertEquals(evalHelper(`(= start-time 0)`, env), `false`);
+  assertEquals(evalHelper(`(sumdown 10)`, env), `55`);
+  await (() => {
+    return new Promise((r) => setTimeout(r, 1));
+  })();
+  assertEquals(evalHelper(`(> (time-ms) start-time)`, env), `true`);
+});
+
+Deno.test(`defining a macro does not mutate an existing function.`, () => {
+  const env = makeEnvChain();
+  evalHelper(`(def! f (fn* [x] (number? x)))`, env);
+  evalHelper(`(defmacro! m f)`, env);
+  assertEquals(evalHelper(`(f (+ 1 1))`, env), `true`);
+  assertEquals(evalHelper(`(m (+ 1 1))`, env), `false`);
 });

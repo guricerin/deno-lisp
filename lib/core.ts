@@ -1,13 +1,4 @@
-import {
-  Env,
-  EnvChain,
-  kFalse,
-  Kind,
-  kNil,
-  kTrue,
-  Ty,
-  TyList,
-} from "./types.ts";
+import { Env, EnvChain, kFalse, Kind, kNil, kTrue, Ty } from "./types.ts";
 import {
   assignMeta,
   bindArgs,
@@ -608,6 +599,10 @@ function makeBuiltinEnv(): Env {
         );
       }
     }
+  });
+  builtin("time-ms", (..._args: Ty[]): Ty => {
+    const now = Date.now();
+    return makeNumber(now);
   });
 
   return env;
