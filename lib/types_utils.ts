@@ -348,9 +348,24 @@ export function equal(x: Ty, y: Ty): boolean {
     return equalSeq(x, y);
   } else if (x.kind === Kind.Vector && y.kind === Kind.List) {
     return equalSeq(x, y);
+  } else if (x.kind === Kind.HashMap && y.kind === Kind.HashMap) {
+    return equalMap(x.keywordMap, y.keywordMap) && equalMap(x.strMap, y.strMap);
   }
 
   return false;
+}
+
+function equalMap<K>(x: Map<K, Ty>, y: Map<K, Ty>): boolean {
+  if (x.size !== y.size) {
+    return false;
+  }
+  for (const [k, v] of x) {
+    const vv = y.get(k);
+    if (!vv || !equal(v, vv)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function equalSeq(x: TyList | TyVector, y: TyList | TyVector): boolean {

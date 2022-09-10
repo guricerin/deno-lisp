@@ -143,17 +143,24 @@ Deno.test(`sequential? function`, () => {
 
 Deno.test(`apply function with core functions and arguments in vector`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(apply + 4 [5])`, env), `9`);
+  assertEquals(evalHelper(`(apply prn 1 2 ["3" 4])`, env), `nil`);
+  assertEquals(evalHelper(`(apply list [])`, env), `()`);
 });
 
 Deno.test(`apply function with user functions and arguments in vector`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(apply (fn* (a b) (+ a b)) [2 3])`, env), `5`);
+  assertEquals(evalHelper(`(apply (fn* (a b) (+ a b)) 4 [5])`, env), `9`);
 });
 
 Deno.test(`map function with vectors`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(map (fn* (a) (* 2 a)) [1 2 3])`, env), `(2 4 6)`);
+  assertEquals(
+    evalHelper(`(map (fn* [& args] (list? args)) [1 2])`, env),
+    `(true true)`,
+  );
 });
 
 Deno.test(`vector functions`, () => {
@@ -271,22 +278,43 @@ Deno.test(`Additional str and pr-str tests`, () => {
 
 Deno.test(`extra function arguments as Mal List (bypassing TCO with apply)`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(
+    evalHelper(`(apply (fn* (& more) (list? more)) [1 2 3])`, env),
+    `true`,
+  );
+  assertEquals(
+    evalHelper(`(apply (fn* (& more) (list? more)) [])`, env),
+    `true`,
+  );
+  assertEquals(
+    evalHelper(`(apply (fn* (a & more) (list? more)) [1])`, env),
+    `true`,
+  );
 });
 
 Deno.test(`throwing a hash-map`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertThrows(() => {
+    evalHelper(`(throw {:msg "err2"})`, env);
+  });
 });
 
 Deno.test(`try* without catch*`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertThrows(() => {
+    evalHelper(`(try* xyz)`, env);
+  });
 });
 
 Deno.test(`throwing non-strings`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(
+    evalHelper(
+      `(try* (throw (list 1 2 3)) (catch* exc (do (prn "err:" exc) 7)))`,
+      env,
+    ),
+    `7`,
+  );
 });
 
 Deno.test(`dissoc`, () => {
@@ -312,7 +340,32 @@ Deno.test(`dissoc`, () => {
 
 Deno.test(`equality of hash-maps`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  assertEquals(evalHelper(`(= {} {})`, env), `true`);
+  assertEquals(evalHelper(`(= {} (hash-map))`, env), `true`);
+  assertEquals(
+    evalHelper(`(= {:a 11 :b 22} (hash-map :b 22 :a 11))`, env),
+    `true`,
+  );
+  assertEquals(
+    evalHelper(`(= {:a 11 :b [22 33]} (hash-map :b [22 33] :a 11))`, env),
+    `true`,
+  );
+  assertEquals(
+    evalHelper(`(= {:a 11 :b {:c 33}} (hash-map :b {:c 33} :a 11))`, env),
+    `true`,
+  );
+  assertEquals(
+    evalHelper(`(= {:a 11 :b 22} (hash-map :b 23 :a 11))`, env),
+    `false`,
+  );
+  assertEquals(evalHelper(`(= {:a 11 :b 22} (hash-map :a 11))`, env), `false`);
+  assertEquals(evalHelper(`(= {:a [11 22]} {:a (list 11 22)})`, env), `true`);
+  assertEquals(
+    evalHelper(`(= {:a 11 :b 22} (list :a 11 :b 22))`, env),
+    `false`,
+  );
+  assertEquals(evalHelper(`(= {} [])`, env), `false`);
+  assertEquals(evalHelper(`(= [] {})`, env), `false`);
 });
 
 Deno.test(`hashmaps don't alter function ast`, () => {
