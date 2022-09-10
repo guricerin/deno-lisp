@@ -84,6 +84,11 @@ function makeBuiltinEnv(): Env {
     const res = x.kind === Kind.Bool && x.val === false;
     return makeBool(res);
   });
+  builtin("string?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.String;
+    return makeBool(res);
+  });
   builtin("symbol", (...args: Ty[]): Ty => {
     const [x] = args;
     switch (x.kind) {

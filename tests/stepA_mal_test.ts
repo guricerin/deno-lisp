@@ -29,7 +29,60 @@ Deno.test(`*host-language*`, () => {
   );
 });
 
-Deno.test(`try*/catch*`, () => {
+Deno.test(`hash-map evaluation and atoms (i.e. an env)`, () => {
+  const env = makeEnvChain();
+  evalHelper(`(def! e (atom {"+" +}))`, env);
+  evalHelper(`(swap! e assoc "-" -)`, env);
+  assertEquals(evalHelper(`( (get @e "+") 7 8)`, env), `15`);
+  assertEquals(evalHelper(`( (get @e "-") 11 8)`, env), `3`);
+  evalHelper(`(swap! e assoc "foo" (list))`, env);
+  assertEquals(evalHelper(`(get @e "foo")`, env), `()`);
+  evalHelper(`(swap! e assoc "bar" '(1 2 3))`, env);
+  assertEquals(evalHelper(`(get @e "bar")`, env), `(1 2 3)`);
+});
+
+Deno.test(`presence of optional functions`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`metadata on mal functions`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`Meta of native functions should return nil (not fail)`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`Make sure closures and metadata co-exist`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`string? function`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(string? "")`, env), `true`);
+  assertEquals(evalHelper(`(string? 'abc)`, env), `false`);
+  assertEquals(evalHelper(`(string? "abc")`, env), `true`);
+  assertEquals(evalHelper(`(string? :abc)`, env), `false`);
+  assertEquals(evalHelper(`(string? (keyword "abc"))`, env), `false`);
+  assertEquals(evalHelper(`(string? 234)`, env), `false`);
+  assertEquals(evalHelper(`(string? nil)`, env), `false`);
+});
+
+Deno.test(`number? function`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`fn? function`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(``, env), ``);
+});
+
+Deno.test(`macro? function`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(``, env), ``);
 });
