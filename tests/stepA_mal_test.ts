@@ -176,3 +176,62 @@ Deno.test(`seq function`, () => {
   assertEquals(evalHelper(`(seq [])`, env), `nil`);
   assertEquals(evalHelper(`(seq nil)`, env), `nil`);
 });
+
+Deno.test(`metadata on collections`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(meta [1 2 3])`, env), `nil`);
+  assertEquals(evalHelper(`(with-meta [1 2 3] {"a" 1})`, env), `[1 2 3]`);
+  assertEquals(
+    evalHelper(`(meta (with-meta [1 2 3] {"a" 1}))`, env),
+    `{"a" 1}`,
+  );
+  assertEquals(
+    evalHelper(`(vector? (with-meta [1 2 3] {"a" 1}))`, env),
+    `true`,
+  );
+  assertEquals(evalHelper(`(meta (with-meta [1 2 3] "abc"))`, env), `"abc"`);
+  assertEquals(evalHelper(`(with-meta [] "abc")`, env), `[]`);
+  assertEquals(
+    evalHelper(`(meta (with-meta (list 1 2 3) {"a" 1}))`, env),
+    `{"a" 1}`,
+  );
+  assertEquals(
+    evalHelper(`(list? (with-meta (list 1 2 3) {"a" 1}))`, env),
+    `true`,
+  );
+  assertEquals(evalHelper(`(with-meta (list) {"a" 1})`, env), `()`);
+  assertEquals(evalHelper(`(empty? (with-meta (list) {"a" 1}))`, env), `true`);
+  assertEquals(
+    evalHelper(`(meta (with-meta {"abc" 123} {"a" 1}))`, env),
+    `{"a" 1}`,
+  );
+  assertEquals(
+    evalHelper(`(map? (with-meta {"abc" 123} {"a" 1}))`, env),
+    `true`,
+  );
+  assertEquals(evalHelper(`(with-meta {} {"a" 1})`, env), `{}`);
+  assertEquals(
+    evalHelper(`(def! l-wm (with-meta [4 5 6] {"b" 2}))`, env),
+    `[4 5 6]`,
+  );
+  assertEquals(evalHelper(`(meta l-wm)`, env), `{"b" 2}`);
+  assertEquals(
+    evalHelper(`(meta (with-meta l-wm {"new_meta" 123}))`, env),
+    `{"new_meta" 123}`,
+  );
+  assertEquals(evalHelper(`(meta l-wm)`, env), `{"b" 2}`);
+});
+
+Deno.test(`metadata on builtin functions`, () => {
+  const env = makeEnvChain();
+  assertEquals(evalHelper(`(meta +)`, env), `nil`);
+  evalHelper(`(def! f-wm3 ^{"def" 2} +)`, env);
+  assertEquals(evalHelper(`(meta f-wm3)`, env), `{"def" 2}`);
+  assertEquals(evalHelper(`(meta +)`, env), `nil`);
+});
+
+Deno.test(`time-ms function`, () => {
+  const env = makeEnvChain();
+  // Loading sumdown from computations.mal
+  assertEquals(evalHelper(``, env), ``);
+});
