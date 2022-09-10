@@ -316,9 +316,7 @@ function makeBuiltinEnv(): Env {
       );
     }
     if (ls.list.length <= i.val) {
-      throw new Error(
-        `nth: list.length (${ls.list.length}) is less than ${i.val}.`,
-      );
+      return kNil;
     }
     return ls.list[i.val];
   });
