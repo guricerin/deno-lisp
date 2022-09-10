@@ -106,7 +106,15 @@ Deno.test(`apply function with user functions`, () => {
 
 Deno.test(`map function`, () => {
   const env = makeEnvChain();
-  assertEquals(evalHelper(``, env), ``);
+  evalHelper(`(def! nums (list 1 2 3))`, env);
+  evalHelper(`(def! double (fn* (a) (* 2 a)))`, env);
+  assertEquals(evalHelper(`(double 3)`, env), `6`);
+  assertEquals(evalHelper(`(map double nums) `, env), `(2 4 6)`);
+  assertEquals(
+    evalHelper(`(map (fn* (x) (symbol? x)) (list 1 (quote two) "three"))`, env),
+    `(false true false)`,
+  );
+  assertEquals(evalHelper(`(= () (map str ()))`, env), `true`);
 });
 
 Deno.test(`symbol and keyword functions`, () => {

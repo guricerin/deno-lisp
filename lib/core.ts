@@ -384,8 +384,8 @@ function makeBuiltinEnv(): Env {
     }
     switch (fn.kind) {
       case Kind.Func: {
-        bindArgs(fn, ls.list);
         const res = ls.list.map((x) => {
+          bindArgs(fn, [x]);
           return evalAst(fn.body, fn.closure);
         });
         return makeList(res);
