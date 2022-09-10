@@ -351,6 +351,34 @@ function makeBuiltinEnv(): Env {
     }
     return makeNumber(x.list.length);
   });
+  builtin("map", (...args: Ty[]): Ty => {
+    const [fn, ls] = args;
+    if (ls.kind !== Kind.List && ls.kind !== Kind.Vector) {
+      throw new Error(
+        `unexpected expr type: ${ls.kind}, 'map' expected list or vector as 2nd arg.`,
+      );
+    }
+    switch (fn.kind) {
+      case Kind.Func: {
+        bindArgs(fn, ls.list);
+        const res = ls.list.map((x) => {
+          return evalAst(fn.body, fn.closure);
+        });
+        return makeList(res);
+      }
+      case Kind.BuiltinFn: {
+        const res = ls.list.map((x) => {
+          return fn.fn(x);
+        });
+        return makeList(res);
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${fn.kind}, 'map' expected function or built-in-fn as 1st arg.`,
+        );
+      }
+    }
+  });
   builtin("read-string", (...args: Ty[]): Ty => {
     const [x] = args;
     switch (x.kind) {

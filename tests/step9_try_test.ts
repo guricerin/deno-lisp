@@ -67,6 +67,14 @@ Deno.test(`exception handlers get restored correctly`, () => {
   );
 });
 
+Deno.test(`throw is a function`, () => {
+  const env = makeEnvChain();
+  assertEquals(
+    evalHelper(`(try* (map throw (list "my err")) (catch* exc exc))`, env),
+    `"my err"`,
+  );
+});
+
 Deno.test(`builtin functions`, () => {
   const env = makeEnvChain();
   assertEquals(evalHelper(`(symbol? 'abc)`, env), `true`);
