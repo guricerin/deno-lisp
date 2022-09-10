@@ -32,6 +32,7 @@ export const enum Kind {
 export interface TyList {
   kind: Kind.List;
   list: Ty[];
+  meta: Ty;
 }
 
 export interface TyNumber {
@@ -80,12 +81,14 @@ export interface TyKeyword {
 export interface TyVector {
   kind: Kind.Vector;
   list: Ty[];
+  meta: Ty;
 }
 
 export interface TyHashMap {
   kind: Kind.HashMap;
   strMap: Map<string, Ty>;
   keywordMap: Map<string, Ty>;
+  meta: Ty;
 }
 
 export type Env = Map<string, Ty>;
@@ -102,6 +105,7 @@ export type Fn = (...args: Ty[]) => Ty;
 export interface TyBuiltinFn {
   kind: Kind.BuiltinFn;
   fn: Fn;
+  meta: Ty;
 }
 
 /**
@@ -115,6 +119,7 @@ export interface TyFunc {
   params: TySymbol[];
   body: Ty;
   closure: EnvChain;
+  meta: Ty;
 }
 
 export interface TyMacro {
@@ -122,6 +127,7 @@ export interface TyMacro {
   params: TySymbol[];
   body: Ty;
   closure: EnvChain;
+  meta: Ty;
 }
 
 /**

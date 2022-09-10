@@ -96,10 +96,20 @@ function parseForm(reader: Reader): Ty {
     case "@": {
       return parseQuotes(reader, "deref");
     }
+    case "^": {
+      return parseMeta(reader);
+    }
     default: {
       return parseAtom(reader);
     }
   }
+}
+
+function parseMeta(reader: Reader): Ty {
+  reader.next(); // drop '^'
+  const metaDate = parseForm(reader);
+  const fn = parseForm(reader);
+  return makeList([makeSymbol("with-meta"), fn, metaDate]);
 }
 
 function parseCollection(

@@ -1,5 +1,6 @@
 import { Env, EnvChain, kFalse, Kind, kNil, kTrue, Ty } from "./types.ts";
 import {
+  assignMeta,
   bindArgs,
   deleteKeys,
   equal,
@@ -131,6 +132,11 @@ function makeBuiltinEnv(): Env {
   builtin("number?", (...args: Ty[]): Ty => {
     const [x] = args;
     const res = x.kind === Kind.Number;
+    return makeBool(res);
+  });
+  builtin("fn?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Func || x.kind === Kind.BuiltinFn;
     return makeBool(res);
   });
   builtin("pr-str", (...args: Ty[]): Ty => {
@@ -461,6 +467,28 @@ function makeBuiltinEnv(): Env {
         );
       }
     }
+  });
+  builtin("meta", (...args: Ty[]): Ty => {
+    const [x] = args;
+    switch (x.kind) {
+      case Kind.List:
+      case Kind.Vector:
+      case Kind.HashMap:
+      case Kind.BuiltinFn:
+      case Kind.Func:
+      case Kind.Macro: {
+        return x.meta;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'meta' expected list or vector or hashmap or function or built-in-fn or macro.`,
+        );
+      }
+    }
+  });
+  builtin("with-meta", (...args: Ty[]): Ty => {
+    const [x, meta] = args;
+    return assignMeta(x, meta);
   });
   builtin("atom", (...args: Ty[]): Ty => {
     const [a] = args;
