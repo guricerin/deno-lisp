@@ -25,6 +25,7 @@ export function makeList(list: Ty[]): TyList {
   return {
     kind: Kind.List,
     list: list,
+    meta: kNil,
   };
 }
 
@@ -95,6 +96,7 @@ export function makeVector(list: Ty[]): TyVector {
   return {
     kind: Kind.Vector,
     list: list,
+    meta: kNil,
   };
 }
 
@@ -103,6 +105,7 @@ export function makeHashMap(list: Ty[]): TyHashMap {
     kind: Kind.HashMap,
     strMap: new Map(),
     keywordMap: new Map(),
+    meta: kNil,
   };
 
   while (list.length > 0) {
@@ -153,6 +156,7 @@ export function deleteKeys(mp: TyHashMap, keys: Ty[]): TyHashMap {
       kind: Kind.HashMap,
       strMap: new Map(m.strMap),
       keywordMap: new Map(m.keywordMap),
+      meta: kNil,
     };
   };
 
@@ -261,6 +265,7 @@ export function makeBuiltinFunc(fn: Fn): TyBuiltinFn {
   return {
     kind: Kind.BuiltinFn,
     fn: fn,
+    meta: kNil,
   };
 }
 
@@ -274,6 +279,7 @@ export function makeFunc(
     params: params,
     body: body,
     closure: envChain,
+    meta: kNil,
   };
 }
 
@@ -294,6 +300,7 @@ export function makeMacro(
     params: params,
     body: body,
     closure: envChain,
+    meta: kNil,
   };
 }
 
@@ -325,6 +332,27 @@ export function makeAtom(x: Ty): TyAtom {
     kind: Kind.Atom,
     ref: x,
   };
+}
+
+export function assignMeta(x: Ty, meta: Ty): Ty {
+  switch (x.kind) {
+    case Kind.List:
+    case Kind.Vector:
+    case Kind.HashMap:
+    case Kind.BuiltinFn:
+    case Kind.Func:
+    case Kind.Macro: {
+      return {
+        ...x,
+        meta: meta,
+      };
+    }
+    default: {
+      throw new Error(
+        `unexpected expr type: ${x.kind}, expected list or vector or hashmap or function or built-in-fn or macro.`,
+      );
+    }
+  }
 }
 
 export function equal(x: Ty, y: Ty): boolean {

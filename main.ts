@@ -1,4 +1,3 @@
-import { stdio } from "./deps.ts";
 import { EnvChain, Ty, TySymbol } from "./lib/types.ts";
 import {
   makeList,
@@ -35,7 +34,7 @@ function rep(s: string, envChain: EnvChain) {
   print(evalLisp(read(s), envChain));
 }
 
-(async () => {
+(() => {
   const envChain: EnvChain = initEnvChain();
   const [filePath, ...args] = Deno.args;
 
@@ -53,7 +52,12 @@ function rep(s: string, envChain: EnvChain) {
       console.error(`Error: ${err.message}`);
     }
   } else {
-    for await (const line of stdio.readLines(Deno.stdin)) {
+    evalLisp(read(`(println (str "Mal [" *host-language* "]"))`), envChain);
+    while (true) {
+      const line = prompt("user>");
+      if (!line) {
+        continue;
+      }
       try {
         rep(line, envChain);
       } catch (e) {

@@ -1,4 +1,4 @@
-import { Kind, Ty, TyList, TyNumber, TyString, TySymbol } from "./types.ts";
+import { Ty, TyList } from "./types.ts";
 import {
   makeHashMap,
   makeKeyword,
@@ -17,7 +17,7 @@ export class Reader {
     this.tokens = tokens;
   }
 
-  next(): string | null {
+  next(): string | undefined {
     const res = this.peek();
     if (res) {
       this.pos += 1;
@@ -25,8 +25,8 @@ export class Reader {
     return res;
   }
 
-  peek(): string | null {
-    return this.pos < this.tokens.length ? this.tokens[this.pos] : null;
+  peek(): string | undefined {
+    return this.pos < this.tokens.length ? this.tokens[this.pos] : undefined;
   }
 }
 
@@ -96,10 +96,20 @@ function parseForm(reader: Reader): Ty {
     case "@": {
       return parseQuotes(reader, "deref");
     }
+    case "^": {
+      return parseMeta(reader);
+    }
     default: {
       return parseAtom(reader);
     }
   }
+}
+
+function parseMeta(reader: Reader): Ty {
+  reader.next(); // drop '^'
+  const metaData = parseForm(reader);
+  const structure = parseForm(reader);
+  return makeList([makeSymbol("with-meta"), structure, metaData]);
 }
 
 function parseCollection(
@@ -156,7 +166,7 @@ function parseAtom(reader: Reader): Ty {
   return makeSymbol(token);
 }
 
-function eofCheck(token: string | null, msg: string): asserts token {
+function eofCheck(token: string | undefined, msg: string): asserts token {
   if (!token) {
     throw new Error(msg);
   }

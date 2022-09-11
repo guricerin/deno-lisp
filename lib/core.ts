@@ -1,5 +1,6 @@
 import { Env, EnvChain, kFalse, Kind, kNil, kTrue, Ty } from "./types.ts";
 import {
+  assignMeta,
   bindArgs,
   deleteKeys,
   equal,
@@ -28,6 +29,7 @@ export function initEnvChain(): EnvChain {
   const defInMal = ((code: string) => {
     evalAst(parse(code), res);
   });
+  defInMal(`(def! *host-language* "TypeScript")`);
   defInMal("(def! not (fn* (a) (if a false true)))");
   defInMal(
     '(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))',
@@ -83,6 +85,11 @@ function makeBuiltinEnv(): Env {
     const res = x.kind === Kind.Bool && x.val === false;
     return makeBool(res);
   });
+  builtin("string?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.String;
+    return makeBool(res);
+  });
   builtin("symbol", (...args: Ty[]): Ty => {
     const [x] = args;
     switch (x.kind) {
@@ -120,6 +127,21 @@ function makeBuiltinEnv(): Env {
   builtin("keyword?", (...args: Ty[]): Ty => {
     const [x] = args;
     const res = x.kind === Kind.Keyword;
+    return makeBool(res);
+  });
+  builtin("number?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Number;
+    return makeBool(res);
+  });
+  builtin("fn?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Func || x.kind === Kind.BuiltinFn;
+    return makeBool(res);
+  });
+  builtin("macro?", (...args: Ty[]): Ty => {
+    const [x] = args;
+    const res = x.kind === Kind.Macro;
     return makeBool(res);
   });
   builtin("pr-str", (...args: Ty[]): Ty => {
@@ -294,9 +316,7 @@ function makeBuiltinEnv(): Env {
       );
     }
     if (ls.list.length <= i.val) {
-      throw new Error(
-        `nth: list.length (${ls.list.length}) is less than ${i.val}.`,
-      );
+      return kNil;
     }
     return ls.list[i.val];
   });
@@ -419,6 +439,20 @@ function makeBuiltinEnv(): Env {
       }
     }
   });
+  builtin("readline", (...args: Ty[]): Ty => {
+    const [x] = args;
+    if (x.kind !== Kind.String) {
+      throw new Error(
+        `unexpected expr type: ${x.kind}, 'readline' expected string.`,
+      );
+    }
+    const line = prompt(x.val);
+    if (!line) {
+      return kNil;
+    } else {
+      return makeString(line);
+    }
+  });
   builtin("eval", (...args: Ty[]): Ty => {
     const [x] = args;
     return evalAst(x, [env]);
@@ -436,6 +470,71 @@ function makeBuiltinEnv(): Env {
         );
       }
     }
+  });
+  builtin("conj", (...args: Ty[]): Ty => {
+    const [ls, ...elms] = args;
+    switch (ls.kind) {
+      case Kind.List: {
+        const rev = [...elms];
+        return makeList([...rev.reverse(), ...ls.list]);
+      }
+      case Kind.Vector: {
+        return makeVector([...ls.list, ...elms]);
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${ls.kind}, 'conj' expected list or vector as 1st arg.`,
+        );
+      }
+    }
+  });
+  builtin("seq", (...args: Ty[]): Ty => {
+    const [seq] = args;
+    switch (seq.kind) {
+      case Kind.List: {
+        return seq.list.length === 0 ? kNil : seq;
+      }
+      case Kind.Vector: {
+        return seq.list.length === 0 ? kNil : makeList(seq.list);
+      }
+      case Kind.String: {
+        if (seq.val === "") {
+          return kNil;
+        }
+        const s = [...seq.val].map((x) => makeString(x));
+        return makeList(s);
+      }
+      case Kind.Nil: {
+        return seq;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${seq.kind}, 'seq' expected list or vector or string or nil.`,
+        );
+      }
+    }
+  });
+  builtin("meta", (...args: Ty[]): Ty => {
+    const [x] = args;
+    switch (x.kind) {
+      case Kind.List:
+      case Kind.Vector:
+      case Kind.HashMap:
+      case Kind.BuiltinFn:
+      case Kind.Func:
+      case Kind.Macro: {
+        return x.meta;
+      }
+      default: {
+        throw new Error(
+          `unexpected expr type: ${x.kind}, 'meta' expected list or vector or hashmap or function or built-in-fn or macro.`,
+        );
+      }
+    }
+  });
+  builtin("with-meta", (...args: Ty[]): Ty => {
+    const [x, meta] = args;
+    return assignMeta(x, meta);
   });
   builtin("atom", (...args: Ty[]): Ty => {
     const [a] = args;
@@ -496,6 +595,34 @@ function makeBuiltinEnv(): Env {
         throw new Error(
           `unexpected expr type: ${f.kind}, 'swap!' expected atom as 2nd arg.`,
         );
+      }
+    }
+  });
+  builtin("time-ms", (..._args: Ty[]): Ty => {
+    const now = Date.now();
+    return makeNumber(now);
+  });
+  builtin("ts-eval", (...args: Ty[]): Ty => {
+    const [code] = args;
+    if (code.kind !== Kind.String) {
+      throw new Error(
+        `unexpected expr type: ${code.kind}, 'ts-eval' expected string.`,
+      );
+    }
+    const res = eval(code.val);
+    const ty = typeof res;
+    switch (ty) {
+      case "number": {
+        return makeNumber(res);
+      }
+      case "string": {
+        return makeString(res);
+      }
+      case "boolean": {
+        return makeBool(res);
+      }
+      default: {
+        return kNil;
       }
     }
   });
